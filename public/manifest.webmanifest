@@ -1,0 +1,12 @@
+{
+  "name": "Próximo Paso",
+  "short_name": "Próximo Paso",
+  "description": "Curso Próximo Paso de la iglesia",
+  "start_url": "/inicio",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FE4703",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
