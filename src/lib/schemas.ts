@@ -19,6 +19,8 @@ export const profileSchema = z.object({
   city: z.string().trim().max(80).optional().or(z.literal('')),
   state: z.string().trim().max(80).optional().or(z.literal('')),
   zip_code: z.string().trim().max(12).optional().or(z.literal('')),
+  emergency_contact_name: z.string().trim().max(120).optional().or(z.literal('')),
+  emergency_contact_phone: z.string().trim().max(25).optional().or(z.literal('')),
 });
 
 export const cycleSchema = z.object({

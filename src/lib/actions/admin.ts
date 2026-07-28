@@ -133,6 +133,20 @@ export async function removeAttendance(sessionId: string, userId: string, reason
   revalidatePath('/admin/asistencia');
   return { success: 'Asistencia eliminada.' };
 }
+export async function approveAttendanceRequest(id: string, note?: string): Promise<FormState> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc('approve_attendance_request', { p_id: id, p_note: note || null });
+  if (error) return { error: error.message };
+  revalidatePath('/admin/asistencia');
+  return { success: 'Asistencia aprobada.' };
+}
+export async function rejectAttendanceRequest(id: string, reason: string): Promise<FormState> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc('reject_attendance_request', { p_id: id, p_reason: reason });
+  if (error) return { error: error.message };
+  revalidatePath('/admin/asistencia');
+  return { success: 'Solicitud rechazada.' };
+}
 export async function overrideRequirement(enrollmentId: string, kind: 'test' | 'dream_team', reason: string): Promise<FormState> {
   const supabase = createClient();
   const { error } = await supabase.rpc('admin_override_requirement', { p_enrollment: enrollmentId, p_kind: kind, p_reason: reason });

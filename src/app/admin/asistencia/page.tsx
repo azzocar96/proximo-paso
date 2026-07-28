@@ -22,10 +22,13 @@ export default async function AsistenciaAdminPage({ searchParams }: { searchPara
     ]);
     records = r ?? []; enrolled = (s as any) ?? [];
   }
+  const { data: pendingRequests } = await supabase.from('attendance_records')
+    .select('id,user_id,request_note,recorded_at,session_id, profiles(first_name,last_name,email), course_sessions(step_number,name,session_date,course_cycles(name))')
+    .eq('result', 'pending_approval').order('recorded_at');
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Asistencia — corrección manual</h1>
-      <AttendancePanel sessions={(sessions as any) ?? []} selectedId={selected} records={records} enrolled={enrolled} />
+      <AttendancePanel sessions={(sessions as any) ?? []} selectedId={selected} records={records} enrolled={enrolled} pendingRequests={(pendingRequests as any) ?? []} />
     </div>
   );
 }

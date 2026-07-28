@@ -38,12 +38,16 @@ export const CYCLE_LABEL: Record<string, string> = {
   draft: 'Borrador', registration_open: 'Inscripciones abiertas', active: 'Activo',
   completed: 'Completado', cancelled: 'Cancelado', archived: 'Archivado',
 };
-export const MARITAL_STATUS_LABEL: Record<string, string> = {
-  single: 'Soltero/a', married: 'Casado/a', widowed: 'Viudo/a', divorced: 'Divorciado/a',
-};
-export const GENDER_LABEL: Record<string, string> = {
-  female: 'Femenino', male: 'Masculino',
-};
+export function calcAge(birthDate?: string | null): number | null {
+  if (!birthDate) return null;
+  const b = new Date(birthDate.includes('T') ? birthDate : birthDate + 'T12:00:00');
+  if (Number.isNaN(b.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - b.getFullYear();
+  const m = today.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
+  return age;
+}
 export const EDUCATION_LEVEL_LABEL: Record<string, string> = {
   primary: 'Primaria', secondary: 'Secundaria', university: 'Universitaria',
 };

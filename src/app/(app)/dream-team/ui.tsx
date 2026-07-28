@@ -3,7 +3,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveDreamTeam } from '@/lib/actions/dreamteam';
 import { Alert } from '@/components/ui/Alert';
-import { MARITAL_STATUS_LABEL, GENDER_LABEL, EDUCATION_LEVEL_LABEL, CHURCH_ATTENDANCE_LABEL } from '@/lib/utils';
+import { EDUCATION_LEVEL_LABEL, CHURCH_ATTENDANCE_LABEL } from '@/lib/utils';
 
 const AREAS = ['Alabanza', 'Bienvenida', 'Niños', 'Jóvenes', 'Multimedia', 'Intercesión', 'Logística', 'Limpieza', 'Seguridad', 'Consejería'];
 const DAYS = ['Domingo AM', 'Domingo PM', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -28,8 +28,6 @@ export function DreamTeamForm({ ministries, questions, initial }: {
     comments: initial?.comments ?? '',
     contact_consent: initial?.contact_consent ?? false,
     extra: extraInit,
-    marital_status: initial?.marital_status ?? '',
-    gender: initial?.gender ?? '',
     education_level: initial?.education_level ?? '',
     education_degree: initial?.education_degree ?? '',
     occupation: initial?.occupation ?? '',
@@ -68,8 +66,6 @@ export function DreamTeamForm({ ministries, questions, initial }: {
       comments: f.comments,
       contact_consent: f.contact_consent,
       extra: f.extra,
-      marital_status: f.marital_status,
-      gender: f.gender,
       education_level: f.education_level,
       education_degree: f.education_degree,
       occupation: f.occupation,
@@ -137,20 +133,6 @@ export function DreamTeamForm({ ministries, questions, initial }: {
       <div className="card space-y-3">
         <p className="label !mb-0">Datos adicionales</p>
         <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="label">Estado civil</label>
-            <select className="input" value={f.marital_status} onChange={(e) => setF((p) => ({ ...p, marital_status: e.target.value }))}>
-              <option value="">— selecciona —</option>
-              {Object.entries(MARITAL_STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="label">Sexo</label>
-            <select className="input" value={f.gender} onChange={(e) => setF((p) => ({ ...p, gender: e.target.value }))}>
-              <option value="">— selecciona —</option>
-              {Object.entries(GENDER_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </div>
           <div>
             <label className="label">Nivel de educación</label>
             <select className="input" value={f.education_level} onChange={(e) => setF((p) => ({ ...p, education_level: e.target.value }))}>

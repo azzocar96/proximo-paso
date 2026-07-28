@@ -32,10 +32,23 @@ export async function updateProfile(_prev: FormState, formData: FormData): Promi
     first_name: d.first_name, middle_name: d.middle_name || null, last_name: d.last_name,
     birth_date: d.birth_date || null, phone: d.phone || null, address: d.address || null,
     city: d.city || null, state: d.state || null, zip_code: d.zip_code || null,
+    emergency_contact_name: d.emergency_contact_name || null,
+    emergency_contact_phone: d.emergency_contact_phone || null,
   }).eq('id', user.id);
   if (error) return { error: 'No pudimos guardar los cambios.' };
   revalidatePath('/perfil');
   return { success: 'Perfil actualizado.' };
+}
+
+// ---------- solicitar confirmación de asistencia (clase que ya pasó y no se marcó) ----------
+export async function requestAttendanceApproval(sessionId: string, message: string): Promise<FormState> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc('request_attendance_approval', { p_session: sessionId, p_message: message });
+  if (error) return { error: error.message };
+  const r = data as { ok: boolean; message: string };
+  if (!r.ok) return { error: r.message };
+  revalidatePath('/progreso'); revalidatePath('/inicio');
+  return { success: r.message };
 }
 
 export async function uploadAvatar(formData: FormData): Promise<FormState> {

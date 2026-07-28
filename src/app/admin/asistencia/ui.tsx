@@ -1,12 +1,12 @@
 'use client';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { manualAttendance, removeAttendance } from '@/lib/actions/admin';
+import { manualAttendance, removeAttendance, approveAttendanceRequest, rejectAttendanceRequest } from '@/lib/actions/admin';
 import { Alert } from '@/components/ui/Alert';
 import { fmtDate } from '@/lib/utils';
 
-export function AttendancePanel({ sessions, selectedId, records, enrolled }: {
-  sessions: any[]; selectedId: string | null; records: any[]; enrolled: any[];
+export function AttendancePanel({ sessions, selectedId, records, enrolled, pendingRequests }: {
+  sessions: any[]; selectedId: string | null; records: any[]; enrolled: any[]; pendingRequests?: any[];
 }) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
@@ -19,6 +19,40 @@ export function AttendancePanel({ sessions, selectedId, records, enrolled }: {
 
   return (
     <div className="space-y-4">
+      {(pendingRequests ?? []).length > 0 && (
+        <section className="card space-y-2 border-blue-200 bg-blue-50">
+          <h2 className="font-bold">Solicitudes de confirmación pendientes ({pendingRequests!.length})</h2>
+          <p className="text-xs text-gray-500">Participantes que olvidaron marcar su asistencia a tiempo y pidieron que se les confirme.</p>
+          <ul className="divide-y text-sm">
+            {pendingRequests!.map((r) => (
+              <li key={r.id} className="py-2 space-y-1">
+                <div className="flex justify-between flex-wrap gap-1">
+                  <span className="font-medium">{r.profiles?.first_name} {r.profiles?.last_name}</span>
+                  <span className="text-xs text-gray-500">
+                    {r.course_sessions?.course_cycles?.name} · Paso {r.course_sessions?.step_number}
+                    {r.course_sessions?.session_date ? ` (${fmtDate(r.course_sessions.session_date)})` : ''}
+                  </span>
+                </div>
+                {r.request_note && <p className="text-gray-600 italic">"{r.request_note}"</p>}
+                <div className="flex gap-3">
+                  <button className="btn-primary !py-1 !px-3 text-xs" disabled={pending}
+                    onClick={() => start(async () => { setMsg(await approveAttendanceRequest(r.id)); router.refresh(); })}>
+                    Aprobar
+                  </button>
+                  <button className="text-red-600 underline text-xs" disabled={pending} onClick={() => {
+                    const motivo = prompt('Motivo para rechazar (obligatorio, queda en auditoría):');
+                    if (!motivo) return;
+                    start(async () => { setMsg(await rejectAttendanceRequest(r.id, motivo)); router.refresh(); });
+                  }}>
+                    Rechazar
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <select className="input md:max-w-md" value={selectedId ?? ''} onChange={(e) => router.push(`/admin/asistencia?sesion=${e.target.value}`)}>
         {sessions.map((s) => (
           <option key={s.id} value={s.id}>
@@ -44,7 +78,9 @@ export function AttendancePanel({ sessions, selectedId, records, enrolled }: {
                   }}>Eliminar</button>
                 </div>
                 <p className="text-xs text-gray-400">
-                  {r.method === 'qr_geolocation' ? `QR · ${r.distance_meters ?? '?'} m (±${r.accuracy_meters ?? '?'} m)` : `Manual (${r.method})${r.manual_reason ? `: ${r.manual_reason}` : ''}`}
+                  {r.method === 'qr_geolocation' ? `QR · ${r.distance_meters ?? '?'} m (±${r.accuracy_meters ?? '?'} m)`
+                    : r.method === 'self_reported' ? `Solicitada por el participante, aprobada${r.manual_reason ? `: ${r.manual_reason}` : ''}`
+                    : `Manual (${r.method})${r.manual_reason ? `: ${r.manual_reason}` : ''}`}
                 </p>
               </li>
             ))}

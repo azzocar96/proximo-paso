@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth';
 import {
-  fmtDate, ENROLLMENT_LABEL, MINISTRY_ASSIGN_LABEL, CERT_LABEL,
-  MARITAL_STATUS_LABEL, GENDER_LABEL, EDUCATION_LEVEL_LABEL, CHURCH_ATTENDANCE_LABEL,
+  fmtDate, calcAge, ENROLLMENT_LABEL, MINISTRY_ASSIGN_LABEL, CERT_LABEL,
+  EDUCATION_LEVEL_LABEL, CHURCH_ATTENDANCE_LABEL,
 } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { OverridePanel, SuggestPanel } from './ui';
@@ -43,8 +43,11 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
           <h2 className="font-bold mb-2">Datos</h2>
           <p>✉️ {profile.email}</p>
           {profile.phone && <p>📞 {profile.phone}</p>}
-          {profile.birth_date && <p>🎂 {fmtDate(profile.birth_date)}</p>}
+          {profile.birth_date && <p>🎂 {fmtDate(profile.birth_date)}{calcAge(profile.birth_date) != null ? ` (${calcAge(profile.birth_date)} años)` : ''}</p>}
           {profile.city && <p>📍 {[profile.address, profile.city, profile.state, profile.zip_code].filter(Boolean).join(', ')}</p>}
+          {(profile.emergency_contact_name || profile.emergency_contact_phone) && (
+            <p>🚨 Emergencia: {[profile.emergency_contact_name, profile.emergency_contact_phone].filter(Boolean).join(' · ')}</p>
+          )}
           <p>Registro: {fmtDate(profile.created_at)} · Cuenta: {profile.account_status === 'active' ? 'activa' : profile.account_status}</p>
         </section>
         <section className="card text-sm">
@@ -93,9 +96,6 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
               {dt.talents?.length > 0 && <p><b>Talentos:</b> {dt.talents.join(', ')}</p>}
               {dt.weekly_availability?.length > 0 && <p><b>Disponibilidad:</b> {dt.weekly_availability.join(', ')}{dt.available_times?.length ? ` (${dt.available_times.join(', ')})` : ''}</p>}
               {dt.previous_church_experience && <p><b>Experiencia en iglesias:</b> {dt.previous_church_experience}</p>}
-              {(dt.marital_status || dt.gender) && (
-                <p><b>Estado civil / sexo:</b> {[dt.marital_status && (MARITAL_STATUS_LABEL[dt.marital_status] ?? dt.marital_status), dt.gender && (GENDER_LABEL[dt.gender] ?? dt.gender)].filter(Boolean).join(' · ')}</p>
-              )}
               {dt.education_level && (
                 <p><b>Educación:</b> {EDUCATION_LEVEL_LABEL[dt.education_level] ?? dt.education_level}{dt.education_degree ? ` — ${dt.education_degree}` : ''}</p>
               )}

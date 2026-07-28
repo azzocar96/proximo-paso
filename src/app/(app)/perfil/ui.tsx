@@ -31,6 +31,15 @@ export function ProfileForm({ profile }: { profile: any }) {
         <div><label className="label">Estado</label><input className="input" name="state" defaultValue={profile?.state ?? ''} /></div>
         <div><label className="label">Código postal</label><input className="input" name="zip_code" defaultValue={profile?.zip_code ?? ''} /></div>
       </div>
+      <div className="pt-2 border-t">
+        <p className="label !mb-2">Contacto de emergencia</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className="label">Nombre</label>
+            <input className="input" name="emergency_contact_name" defaultValue={profile?.emergency_contact_name ?? ''} /></div>
+          <div><label className="label">Teléfono</label>
+            <input className="input" type="tel" name="emergency_contact_phone" defaultValue={profile?.emergency_contact_phone ?? ''} /></div>
+        </div>
+      </div>
       <Submit label="Guardar cambios" />
     </form>
   );

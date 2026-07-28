@@ -17,9 +17,8 @@ const formSchema = z.object({
   comments: z.string().max(3000).optional().or(z.literal('')),
   contact_consent: z.boolean(),
   extra: z.record(z.string(), z.any()).optional(),
-  // campos del formulario real de la iglesia (Fase 2)
-  marital_status: z.enum(['single', 'married', 'widowed', 'divorced']).optional().or(z.literal('')),
-  gender: z.enum(['female', 'male']).optional().or(z.literal('')),
+  // campos del formulario real de la iglesia (Fase 2). Nota: estado civil y
+  // sexo se quitaron 2026-07-28 a pedido de Jesús (no son necesarios).
   education_level: z.enum(['primary', 'secondary', 'university']).optional().or(z.literal('')),
   education_degree: z.string().max(160).optional().or(z.literal('')),
   occupation: z.string().max(160).optional().or(z.literal('')),
@@ -52,8 +51,6 @@ export async function saveDreamTeam(payload: unknown, complete: boolean): Promis
     ministry_interest_ids: d.ministry_interest_ids,
     previous_church_experience: d.previous_church_experience || null,
     comments: d.comments || null, contact_consent: d.contact_consent,
-    marital_status: d.marital_status || null,
-    gender: d.gender || null,
     education_level: d.education_level || null,
     education_degree: d.education_degree || null,
     occupation: d.occupation || null,
