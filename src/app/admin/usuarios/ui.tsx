@@ -3,6 +3,7 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { setRole, setAccountStatus } from '@/lib/actions/admin';
 import { acceptMemberRequest, rejectMemberRequest } from '@/lib/actions/ministry';
+import { grantWallPublisher } from '@/lib/actions/wall';
 import { useRouter } from 'next/navigation';
 import { Alert } from '@/components/ui/Alert';
 
@@ -18,9 +19,10 @@ function topRole(roles: { role: string }[]): string {
   return 'participant';
 }
 
-export function UsersTable({ users, canSetRoles }: { users: any[]; canSetRoles: boolean }) {
+export function UsersTable({ users, canSetRoles, publishers = [] }: { users: any[]; canSetRoles: boolean; publishers?: string[] }) {
   const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
   const [pending, start] = useTransition();
+  const router = useRouter();
   return (
     <div className="space-y-3">
       {msg?.error && <Alert kind="error">{msg.error}</Alert>}
@@ -28,7 +30,7 @@ export function UsersTable({ users, canSetRoles }: { users: any[]; canSetRoles: 
       <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead><tr className="text-left text-gray-500 border-b">
-            <th className="py-2">Nombre</th><th>Correo</th><th>Rol</th><th>Cuenta</th><th></th></tr></thead>
+            <th className="py-2">Nombre</th><th>Correo</th><th>Rol</th><th>Cuenta</th>{canSetRoles && <th title="Permiso puntual para publicar en el muro general">Muro</th>}<th></th></tr></thead>
           <tbody className="divide-y">
             {users.map((u) => (
               <tr key={u.id}>
@@ -50,6 +52,17 @@ export function UsersTable({ users, canSetRoles }: { users: any[]; canSetRoles: 
                     {u.account_status === 'active' ? 'Activa' : 'Suspendida'}
                   </button>
                 </td>
+                {canSetRoles && (
+                  <td>
+                    {/* Fase 3c: autorización puntual para publicar en el muro general */}
+                    <button className={`badge ${publishers.includes(u.id) ? 'bg-brand-50 text-brand-700' : 'bg-gray-100 text-gray-500'}`}
+                      title={publishers.includes(u.id) ? 'Puede publicar en el muro general (clic para quitar)' : 'No publica en el muro general (clic para autorizar)'}
+                      disabled={pending}
+                      onClick={() => start(async () => { setMsg(await grantWallPublisher(u.id, !publishers.includes(u.id))); router.refresh(); })}>
+                      {publishers.includes(u.id) ? 'Publica' : 'No publica'}
+                    </button>
+                  </td>
+                )}
                 <td><Link className="text-brand-600 underline" href={`/admin/participantes/${u.id}`}>Ficha</Link></td>
               </tr>
             ))}

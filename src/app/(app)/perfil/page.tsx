@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { User, Users, BookOpen, HeartHandshake, Mail, Mic, Wrench, ChevronRight } from 'lucide-react';
+import { User, Users, BookOpen, HeartHandshake, Mail, Mic, Wrench, ChevronRight, Newspaper } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { ProfileForm, AvatarForm } from './ui';
 import { signOut } from '@/lib/actions/auth';
@@ -19,6 +19,7 @@ export default async function PerfilPage() {
     { href: '/curso', label: 'Mi curso', Icon: BookOpen },
     { href: '/ministerios', label: 'Ministerios', Icon: HeartHandshake },
     { href: '/contacto', label: 'Contacto', Icon: Mail },
+    { href: '/muro', label: 'Muro', Icon: Newspaper },
     ...((myLedMinistries ?? []).length > 0 || ['pastor', 'superadmin'].includes(role as string)
       ? [{ href: '/liderazgo', label: 'Mi ministerio (director)', Icon: Users }] : []),
     ...(isSpeaker ? [{ href: '/orador', label: 'Mi paso (orador)', Icon: Mic }] : []),

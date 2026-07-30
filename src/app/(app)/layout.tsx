@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {
   Home, TrendingUp, ScanLine, Megaphone, User, BookOpen,
-  HeartHandshake, Mail, Mic, Wrench, LogOut, Users,
+  HeartHandshake, Mail, Mic, Wrench, LogOut, Users, Newspaper,
 } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { signOut } from '@/lib/actions/auth';
@@ -39,6 +39,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         ))}
         <Link href="/curso" className="nav-item"><BookOpen className="nav-item-icon" aria-hidden /> Mi curso</Link>
         <Link href="/ministerios" className="nav-item"><HeartHandshake className="nav-item-icon" aria-hidden /> Ministerios</Link>
+        <Link href="/muro" className="nav-item"><Newspaper className="nav-item-icon" aria-hidden /> Muro</Link>
         <Link href="/contacto" className="nav-item"><Mail className="nav-item-icon" aria-hidden /> Contacto</Link>
         {(isSpeaker || isStaff || isLeader) && <div className="my-2 border-t border-gray-100" />}
         {isLeader && (

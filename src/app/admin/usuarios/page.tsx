@@ -15,6 +15,9 @@ export default async function UsuariosPage({ searchParams }: { searchParams: { q
   const { data: roleRequests } = await supabase.from('member_requests')
     .select('id,details,created_at, profiles!member_requests_user_id_fkey(first_name,last_name,email)')
     .eq('kind', 'role_change').eq('status', 'pending').order('created_at');
+  // Fase 3c: quiénes tienen permiso puntual de publicar en el muro general
+  const { data: publisherRows, error: publishersError } = await supabase.from('wall_publishers').select('user_id');
+  const publishers = (publisherRows ?? []).map((r: { user_id: string }) => r.user_id);
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Usuarios</h1>
@@ -22,10 +25,15 @@ export default async function UsuariosPage({ searchParams }: { searchParams: { q
         <input className="input" name="q" defaultValue={q} placeholder="Buscar por nombre, correo o teléfono" />
         <button className="btn-secondary !py-2">Buscar</button>
       </form>
+      {publishersError && (
+        <p className="text-xs text-red-600">
+          No se pudo leer quién puede publicar en el muro: {publishersError.message}
+        </p>
+      )}
       {(roleRequests ?? []).length > 0 && (
         <RoleChangeRequests requests={(roleRequests as any[]).map((r) => ({ ...r, since: fmtDate(r.created_at) }))} />
       )}
-      <UsersTable users={(users as any) ?? []} canSetRoles={role === 'superadmin' || role === 'pastor'} />
+      <UsersTable users={(users as any) ?? []} canSetRoles={role === 'superadmin' || role === 'pastor'} publishers={publishers} />
       <p className="text-xs text-gray-500">
         Solo el administrador o el pastor pueden cambiar roles. Ver la ficha completa de cada participante desde
         {' '}<Link href="/admin/ciclos" className="underline">su ciclo</Link> o buscándolo aquí.
