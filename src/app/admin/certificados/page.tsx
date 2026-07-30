@@ -13,7 +13,7 @@ export default async function CertificadosPage() {
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Certificados</h1>
-      {role === 'superadmin' && <AutoApproveToggle current={s.certificate_auto_approve === true || s.certificate_auto_approve === 'true'} />}
+      {(role === 'superadmin' || role === 'pastor') && <AutoApproveToggle current={s.certificate_auto_approve === true || s.certificate_auto_approve === 'true'} />}
       <CertTable certs={(certs as any) ?? []} />
     </div>
   );
