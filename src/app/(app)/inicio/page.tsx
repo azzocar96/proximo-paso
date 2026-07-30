@@ -2,9 +2,8 @@ import Link from 'next/link';
 import { ScanLine, CalendarDays, BookOpen, Megaphone, CheckCircle2, CircleDot, Lock, ArrowRight } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getActiveEnrollment, getProgress, progressPercent, nextActivity } from '@/lib/course';
-import { fmtDate, fmtTime } from '@/lib/utils';
+import { fmtDate, fmtTime, ENROLLMENT_LABEL } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { ENROLLMENT_LABEL } from '@/lib/utils';
 
 export const metadata = { title: 'Inicio' };
 export default async function InicioPage() {

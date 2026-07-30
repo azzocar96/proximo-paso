@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { fmtDate } from '@/lib/utils';
 import Link from 'next/link';
+import { XCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 export const metadata = { title: 'Verificación de certificado' };
 export const dynamic = 'force-dynamic';
@@ -14,13 +15,13 @@ export default async function VerificarPage({ params }: { params: { codigo: stri
       <div className="card w-full max-w-md text-center space-y-4">
         {!r?.found ? (
           <>
-            <p className="text-5xl" aria-hidden>❌</p>
+            <XCircle className="w-14 h-14 text-red-500 mx-auto" aria-hidden />
             <h1 className="text-xl font-bold">Certificado no encontrado</h1>
             <p className="text-sm text-gray-600">El código no corresponde a ningún certificado emitido.</p>
           </>
         ) : r.valid ? (
           <>
-            <p className="text-5xl" aria-hidden>✅</p>
+            <CheckCircle2 className="w-14 h-14 text-green-600 mx-auto" aria-hidden />
             <h1 className="text-xl font-bold text-green-700">Certificado válido</h1>
             <p className="font-semibold text-lg">{r.name}</p>
             <p className="text-gray-600">{r.course}</p>
@@ -28,7 +29,7 @@ export default async function VerificarPage({ params }: { params: { codigo: stri
           </>
         ) : (
           <>
-            <p className="text-5xl" aria-hidden>⚠️</p>
+            <AlertTriangle className="w-14 h-14 text-amber-500 mx-auto" aria-hidden />
             <h1 className="text-xl font-bold text-red-700">Certificado revocado</h1>
             <p className="font-semibold">{r.name}</p>
             <p className="text-gray-600">{r.course}</p>

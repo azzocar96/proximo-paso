@@ -15,8 +15,8 @@ export default async function ContactoPage() {
       <h1 className="text-2xl font-extrabold">Contactar a la iglesia</h1>
       {(contact.phone || contact.email) && (
         <div className="card text-sm text-gray-600">
-          {contact.phone && <p>📞 {contact.phone}</p>}
-          {contact.email && <p>✉️ {contact.email}</p>}
+          {contact.phone && <p>{contact.phone}</p>}
+          {contact.email && <p>{contact.email}</p>}
         </div>
       )}
       <ContactForm defaultName={`${profile?.first_name ?? ''} ${profile?.last_name ?? ''}`.trim()} defaultEmail={profile?.email ?? ''} />

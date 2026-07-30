@@ -1,4 +1,5 @@
 'use client';
+import { QrCode, Maximize } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { openAttendance, closeAttendance } from '@/lib/actions/admin';
@@ -69,7 +70,7 @@ export function QrScreen({ session, initialToken, siteUrl }: {
           <h1 className="text-2xl font-extrabold">{session.course_cycles?.name} · Paso {session.step_number}</h1>
           <p className="text-sm text-gray-500">{session.name}</p>
         </div>
-        <button className="btn-secondary !py-2" onClick={() => setFull(!full)}>{full ? 'Salir de pantalla completa' : '⛶ Pantalla completa'}</button>
+        <button className="btn-secondary !py-2" onClick={() => setFull(!full)}>{full ? 'Salir de pantalla completa' : <><Maximize className="w-4 h-4" aria-hidden /> Pantalla completa</>}</button>
       </div>
       {error && <Alert kind="error">{error}</Alert>}
 
@@ -87,7 +88,7 @@ export function QrScreen({ session, initialToken, siteUrl }: {
             </>
           ) : (
             <>
-              <p className="text-5xl" aria-hidden>🔳</p>
+              <QrCode className="w-14 h-14 text-gray-300 mx-auto" aria-hidden />
               <p className="font-semibold">{token && remaining === 0 ? 'El QR venció.' : 'La asistencia está cerrada.'}</p>
               <div className="flex items-center gap-2 justify-center">
                 <label className="text-sm">Duración:</label>
@@ -108,7 +109,7 @@ export function QrScreen({ session, initialToken, siteUrl }: {
           <ul className="divide-y max-h-96 overflow-auto">
             {attendance.map((a) => (
               <li key={a.id} className="py-2 flex justify-between text-sm">
-                <span>✅ {a.profiles?.first_name} {a.profiles?.last_name}</span>
+                <span>{a.profiles?.first_name} {a.profiles?.last_name}</span>
                 <span className="text-gray-400">
                   {new Date(a.recorded_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                   {a.method !== 'qr_geolocation' && ' · manual'}

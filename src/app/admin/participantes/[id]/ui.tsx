@@ -43,7 +43,7 @@ export function OverridePanel({ enrollmentId }: { enrollmentId: string }) {
   const [pending, start] = useTransition();
   return (
     <section className="card space-y-3 border-amber-200 bg-amber-50">
-      <h2 className="font-bold text-sm">⚠️ Excepción administrativa</h2>
+      <h2 className="font-bold text-sm">Excepción administrativa</h2>
       <p className="text-xs text-gray-600">Marca el test o el Dream Team como completados sin que el participante los haya hecho. Requiere motivo y queda registrado en auditoría.</p>
       {msg?.error && <Alert kind="error">{msg.error}</Alert>}
       {msg?.success && <Alert kind="success">{msg.success}</Alert>}

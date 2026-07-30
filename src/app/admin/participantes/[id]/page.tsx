@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { Mail, Phone, Cake, MapPin, AlertTriangle, Lock, CheckCircle2, CircleDot, Circle } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
 import {
   fmtDate, calcAge, ENROLLMENT_LABEL, MINISTRY_ASSIGN_LABEL, CERT_LABEL,
@@ -48,12 +49,12 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
       <div className="grid md:grid-cols-2 gap-4">
         <section className="card text-sm space-y-1">
           <h2 className="font-bold mb-2">Datos</h2>
-          <p>✉️ {profile.email}</p>
-          {profile.phone && <p>📞 {profile.phone}</p>}
-          {profile.birth_date && <p>🎂 {fmtDate(profile.birth_date)}{calcAge(profile.birth_date) != null ? ` (${calcAge(profile.birth_date)} años)` : ''}</p>}
-          {profile.city && <p>📍 {[profile.address, profile.city, profile.state, profile.zip_code].filter(Boolean).join(', ')}</p>}
+          <p className="flex items-center gap-2"><Mail className="w-4 h-4 text-gray-400 shrink-0" aria-hidden /> {profile.email}</p>
+          {profile.phone && <p className="flex items-center gap-2"><Phone className="w-4 h-4 text-gray-400 shrink-0" aria-hidden /> {profile.phone}</p>}
+          {profile.birth_date && <p className="flex items-center gap-2"><Cake className="w-4 h-4 text-gray-400 shrink-0" aria-hidden /> {fmtDate(profile.birth_date)}{calcAge(profile.birth_date) != null ? ` (${calcAge(profile.birth_date)} años)` : ''}</p>}
+          {profile.city && <p className="flex items-center gap-2"><MapPin className="w-4 h-4 text-gray-400 shrink-0" aria-hidden /> {[profile.address, profile.city, profile.state, profile.zip_code].filter(Boolean).join(', ')}</p>}
           {(profile.emergency_contact_name || profile.emergency_contact_phone) && (
-            <p>🚨 Emergencia: {[profile.emergency_contact_name, profile.emergency_contact_phone].filter(Boolean).join(' · ')}</p>
+            <p className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" aria-hidden /> Emergencia: {[profile.emergency_contact_name, profile.emergency_contact_phone].filter(Boolean).join(' · ')}</p>
           )}
           <p>Registro: {fmtDate(profile.created_at)} · Cuenta: {profile.account_status === 'active' ? 'activa' : profile.account_status}</p>
         </section>
@@ -62,10 +63,10 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
           {progress ? (
             <ul className="space-y-1">
               {progress.steps?.map((s: any) => (
-                <li key={s.step}>{s.attended ? '✅' : s.unlocked ? '🟡' : '🔒'} {s.is_certification ? 'Certificación' : `Paso ${s.step}`} {s.date ? `· ${fmtDate(s.date)}` : ''}</li>
+                <li key={s.step} className="flex items-center gap-2">{s.attended ? <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" aria-hidden /> : s.unlocked ? <CircleDot className="w-4 h-4 text-amber-500 shrink-0" aria-hidden /> : <Lock className="w-3.5 h-3.5 text-gray-400 shrink-0" aria-hidden />} {s.is_certification ? 'Certificación' : `Paso ${s.step}`} {s.date ? `· ${fmtDate(s.date)}` : ''}</li>
               ))}
-              <li>{progress.test_done ? '✅' : '⬜'} Test de personalidad</li>
-              <li>{progress.dream_team_done ? '✅' : '⬜'} Dream Team</li>
+              <li className="flex items-center gap-2">{progress.test_done ? <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" aria-hidden /> : <Circle className="w-4 h-4 text-gray-300 shrink-0" aria-hidden />} Test de personalidad</li>
+              <li className="flex items-center gap-2">{progress.dream_team_done ? <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" aria-hidden /> : <Circle className="w-4 h-4 text-gray-300 shrink-0" aria-hidden />} Dream Team</li>
             </ul>
           ) : <p className="text-gray-500">Sin inscripción activa.</p>}
           {(att ?? []).length > 0 && (
@@ -78,7 +79,7 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
 
       <div className="grid md:grid-cols-2 gap-4">
         <section className="card text-sm">
-          <h2 className="font-bold mb-2">Resultado del test 🔒</h2>
+          <h2 className="font-bold mb-2 inline-flex items-center gap-1.5">Resultado del test <Lock className="w-3.5 h-3.5 text-gray-400" aria-hidden /></h2>
           {(attempts ?? []).filter((a) => a.completed_at).map((a: any) => {
             const r = Array.isArray(a.assessment_results) ? a.assessment_results[0] : a.assessment_results;
             return (

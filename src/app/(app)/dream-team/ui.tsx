@@ -1,4 +1,5 @@
 'use client';
+import { Check } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveDreamTeam } from '@/lib/actions/dreamteam';
@@ -230,7 +231,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
   return (
     <button type="button" onClick={onClick}
       className={`rounded-full px-4 py-2 text-sm font-medium border-2 ${on ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-600 hover:border-brand-600'}`}>
-      {on ? '✓ ' : ''}{children}
+      <span className="inline-flex items-center gap-1.5">{on && <Check className="w-3.5 h-3.5" aria-hidden />}{children}</span>
     </button>
   );
 }

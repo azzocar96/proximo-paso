@@ -10,7 +10,7 @@ export default async function PrivacidadPage() {
   return (
     <main className="max-w-2xl mx-auto px-6 py-12">
       <h1 className="text-2xl font-bold mb-4">Política de privacidad</h1>
-      <div className="prose whitespace-pre-wrap text-gray-700">{text}</div>
+      <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-gray-700">{text}</div>
       <p className="mt-8 text-sm text-gray-500">
         Esta app solo solicita tu ubicación en el momento de registrar asistencia y no la almacena de forma permanente:
         solo guarda la distancia calculada al lugar de la clase y la precisión reportada por tu dispositivo.

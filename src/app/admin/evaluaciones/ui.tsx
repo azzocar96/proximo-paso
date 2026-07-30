@@ -33,7 +33,7 @@ export function AssessmentAdmin({ assessments, mode, externalUrl, activeId }: {
             return r1;
           })}>Guardar modo</button>
         </div>
-        <p className="text-xs text-gray-500">⚠️ No inventes resultados psicológicos: usa un test validado por la iglesia (interno o externo). El seed incluye solo una DEMO.</p>
+        <p className="text-xs text-gray-500">No inventes resultados psicológicos: usa un test validado por la iglesia (interno o externo). El seed incluye solo una DEMO.</p>
       </section>
 
       <section className="card space-y-3">

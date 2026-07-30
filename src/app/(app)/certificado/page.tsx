@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { GraduationCap } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { fmtDate, CERT_LABEL } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -12,7 +13,7 @@ export default async function CertificadoPage() {
   if (!cert) {
     return (
       <div className="card text-center space-y-3">
-        <p className="text-4xl" aria-hidden>🎓</p>
+        <span className="mx-auto flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-50 text-brand-600"><GraduationCap className="w-7 h-7" aria-hidden /></span>
         <h1 className="font-bold text-lg">Aún no tienes certificado</h1>
         <p className="text-sm text-gray-600">Completa los 4 pasos, el test y el formulario Dream Team para obtenerlo.</p>
         <Link href="/progreso" className="btn-primary">Ver mi progreso</Link>
@@ -25,7 +26,7 @@ export default async function CertificadoPage() {
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Mi certificado</h1>
       <div className="card space-y-3 text-center">
-        <p className="text-5xl" aria-hidden>🎓</p>
+        <span className="mx-auto flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-500 text-white shadow-[0_8px_24px_rgb(254_71_3/0.3)]"><GraduationCap className="w-8 h-8" aria-hidden /></span>
         <h2 className="text-xl font-bold">{cert.course_name}</h2>
         <p className="text-gray-600">{cert.full_name}</p>
         <p className="text-sm text-gray-500">{cert.church_name}{cert.completion_date ? ` · ${fmtDate(cert.completion_date)}` : ''}</p>

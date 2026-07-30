@@ -133,7 +133,7 @@ export function SuggestDateNote({ suggested, current }: { suggested: string; cur
   if (!suggested || suggested === current) return null;
   return (
     <p className="text-sm bg-brand-50 rounded-xl p-3 text-brand-800">
-      💡 Sugerencia de fecha de certificación: <b>{fmtDate(suggested)}</b>
+      Sugerencia de fecha de certificación: <b>{fmtDate(suggested)}</b>
       {' '}(5º domingo del mes de la última clase, o 1º domingo del mes siguiente).
       Confírmala editando el campo del ciclo abajo — nunca se aplica sola.
     </p>

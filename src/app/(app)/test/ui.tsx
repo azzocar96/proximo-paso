@@ -1,4 +1,5 @@
 'use client';
+import { CheckSquare, Square, ExternalLink } from 'lucide-react';
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { startAttempt, saveAnswer, completeAttempt, declareExternalDone } from '@/lib/actions/assessment';
@@ -68,7 +69,7 @@ export function TestRunner({ assessment }: { assessment: Assessment }) {
                   const next = q.question_type === 'single_choice' ? [o.id] : on ? sel.filter((x) => x !== o.id) : [...sel, o.id];
                   setAnswers((prev) => ({ ...prev, [q.id]: { option_ids: next } }));
                 }}>
-                {on ? '☑' : '☐'} {o.text}
+                <span className="inline-flex items-center gap-2">{on ? <CheckSquare className="w-4 h-4 text-brand-600 shrink-0" aria-hidden /> : <Square className="w-4 h-4 text-gray-400 shrink-0" aria-hidden />} {o.text}</span>
               </button>
             );
           })}
@@ -116,7 +117,7 @@ export function ExternalTest({ url, assessmentId }: { url: string; assessmentId:
       <div className="card space-y-4">
         <p className="text-gray-700 text-sm">La iglesia configuró el test en una plataforma externa. Complétalo y luego vuelve aquí para marcarlo como terminado.</p>
         {url
-          ? <a href={url} target="_blank" rel="noopener noreferrer" className="btn-primary w-full">Abrir el test externo ↗</a>
+          ? <a href={url} target="_blank" rel="noopener noreferrer" className="btn-primary w-full">Abrir el test externo <ExternalLink className="w-4 h-4" aria-hidden /></a>
           : <Alert kind="warn">El enlace del test externo aún no está configurado. Avisa a la iglesia.</Alert>}
         {msg?.error && <Alert kind="error">{msg.error}</Alert>}
         {msg?.success && <Alert kind="success">{msg.success}</Alert>}

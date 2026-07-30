@@ -1,4 +1,5 @@
 'use client';
+import { Lock } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { saveSetting } from '@/lib/actions/admin';
 import { Alert } from '@/components/ui/Alert';
@@ -23,7 +24,7 @@ export function SettingsForm({ settings, isSuper }: { settings: { key: string; v
   const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
   const [pending, start] = useTransition();
   const [vals, setVals] = useState<Record<string, string>>(
-    Object.fromEntries(settings.map((s) => [s.key, JSON.stringify(s.value, null, s.key === 'privacy_policy' ? 0 : 0)])));
+    Object.fromEntries(settings.map((s) => [s.key, JSON.stringify(s.value, null, s.key === 'privacy_policy' ? 2 : 0)])));
   return (
     <div className="space-y-3">
       {msg?.error && <Alert kind="error">{msg.error}</Alert>}
@@ -33,7 +34,7 @@ export function SettingsForm({ settings, isSuper }: { settings: { key: string; v
         return (
           <div key={s.key} className="card space-y-2">
             <div className="flex justify-between items-center">
-              <label className="label !mb-0">{LABEL[s.key] ?? s.key} {locked && '🔒'}</label>
+              <label className="label !mb-0">{LABEL[s.key] ?? s.key} {locked && <Lock className="inline w-3 h-3 text-gray-400 ml-1 -mt-0.5" aria-hidden />}</label>
               <button className="btn-secondary !py-1.5 !px-3 text-sm" disabled={pending || locked}
                 onClick={() => start(async () => {
                   try {

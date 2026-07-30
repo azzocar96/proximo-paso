@@ -1,3 +1,4 @@
+import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { requireUser } from '@/lib/auth';
 import { getActiveEnrollment, getProgress } from '@/lib/course';
@@ -31,7 +32,7 @@ export default async function TestPage() {
       <div className="space-y-5">
         <h1 className="text-2xl font-extrabold">Test de personalidad</h1>
         <div className="card space-y-3 border-green-200 bg-green-50">
-          <p className="font-bold">✅ Test completado</p>
+          <p className="font-bold">Test completado</p>
           {res?.dimension_scores && Object.keys(res.dimension_scores).length > 0 && (
             <div>
               <p className="text-sm font-semibold mb-2">Tu resumen por dimensión:</p>
@@ -67,7 +68,7 @@ export default async function TestPage() {
       <h1 className="text-2xl font-extrabold">{assessment.title}</h1>
       {assessment.is_demo && (
         <p className="text-xs font-bold text-amber-700 bg-amber-50 rounded-xl p-3">
-          ⚠️ Este es un test de DEMOSTRACIÓN. La iglesia debe cargar su test real desde el panel administrativo.
+          Este es un test de DEMOSTRACIÓN. La iglesia debe cargar su test real desde el panel administrativo.
         </p>
       )}
       {assessment.description && <p className="text-gray-600 text-sm">{assessment.description}</p>}
@@ -79,7 +80,7 @@ export default async function TestPage() {
 function Locked({ msg, href, cta }: { msg: string; href: string; cta: string }) {
   return (
     <div className="card text-center space-y-3">
-      <p className="text-4xl" aria-hidden>🔒</p>
+      <span className="mx-auto flex items-center justify-center w-14 h-14 rounded-2xl bg-gray-100 text-gray-400"><Lock className="w-6 h-6" aria-hidden /></span>
       <p>{msg}</p>
       <Link href={href} className="btn-primary">{cta}</Link>
     </div>

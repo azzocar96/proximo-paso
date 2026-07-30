@@ -65,7 +65,7 @@ export default async function CicloDetailPage({ params }: { params: { id: string
           <div className="card space-y-3">
             <ul className="text-sm space-y-1">
               {(coords ?? []).map((c: any) => (
-                <li key={c.id}>👤 {c.profiles?.first_name} {c.profiles?.last_name} — {c.profiles?.email}</li>
+                <li key={c.id}>{c.profiles?.first_name} {c.profiles?.last_name} — {c.profiles?.email}</li>
               ))}
               {(coords ?? []).length === 0 && <li className="text-gray-500">Sin coordinadores asignados.</li>}
             </ul>

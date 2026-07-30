@@ -1,3 +1,4 @@
+import { MapPin, GraduationCap, CheckCircle2 } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { fmtDate, CYCLE_LABEL, ENROLLMENT_LABEL } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -24,10 +25,10 @@ export default async function CursoPage() {
           </div>
           {(e as any).course_cycles?.description && <p className="text-sm text-gray-600">{(e as any).course_cycles.description}</p>}
           {(e as any).course_cycles?.location_name && (
-            <p className="text-sm text-gray-600">📍 {(e as any).course_cycles.location_name} — {(e as any).course_cycles.full_address}</p>
+            <p className="text-sm text-gray-600 inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-brand-600 shrink-0" aria-hidden /> {(e as any).course_cycles.location_name} — {(e as any).course_cycles.full_address}</p>
           )}
           {(e as any).course_cycles?.certificate_delivery_date && (
-            <p className="text-sm text-gray-600">🎓 Entrega de certificados: {fmtDate((e as any).course_cycles.certificate_delivery_date)}</p>
+            <p className="text-sm text-gray-600 inline-flex items-center gap-1.5"><GraduationCap className="w-4 h-4 text-brand-600 shrink-0" aria-hidden /> Entrega de certificados: {fmtDate((e as any).course_cycles.certificate_delivery_date)}</p>
           )}
           {['enrolled','registered'].includes(e.status) && <WithdrawButton enrollmentId={e.id} />}
         </section>
@@ -49,7 +50,7 @@ export default async function CursoPage() {
             {c.capacity ? ` · Cupos: ${c.capacity}` : ''}
           </p>
           {enrolledIds.has(c.id)
-            ? <p className="text-sm font-semibold text-green-700">✅ Ya estás inscrito en este ciclo</p>
+            ? <p className="text-sm font-semibold text-green-700 inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" aria-hidden /> Ya estás inscrito en este ciclo</p>
             : <EnrollButton cycleId={c.id} />}
         </section>
       ))}

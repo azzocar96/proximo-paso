@@ -79,7 +79,7 @@ export default async function Landing() {
             Curso de membresía · {church}
           </span>
           <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight text-gray-900">
-            Da tu <span className="grad-text">{course}</span>
+            Da tu <span className="bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500 bg-clip-text text-transparent">{course}</span>
           </h1>
           <p className="text-lg text-gray-600 leading-relaxed">{objectives}</p>
           <div className="grid sm:grid-cols-2 gap-3 max-w-sm mx-auto pt-2">
@@ -102,7 +102,7 @@ export default async function Landing() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {steps.map((s, i) => (
-              <div key={s.name} className="card card-hover relative flex flex-col gap-3 overflow-hidden">
+              <div key={s.name} className="card relative flex flex-col gap-3 overflow-hidden">
                 <div aria-hidden className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-brand-50 blur-xl" />
                 <span className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 text-white font-bold shadow-[0_4px_12px_rgb(254_71_3/0.35)]">
                   {i + 1}
@@ -179,7 +179,7 @@ export default async function Landing() {
 
 function InfoTile({ Icon, label, value }: { Icon: React.ComponentType<{ className?: string }>; label: string; value: string }) {
   return (
-    <div className="card card-hover space-y-2">
+    <div className="card space-y-2">
       <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-brand-50 text-brand-600">
         <Icon className="w-[18px] h-[18px]" />
       </span>

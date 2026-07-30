@@ -1,7 +1,6 @@
 import { requireAdmin } from '@/lib/auth';
-import { CertTable } from './ui';
+import { CertTable, AutoApproveToggle } from './ui';
 import { getSettings } from '@/lib/settings';
-import { AutoApproveToggle } from './ui';
 
 export const metadata = { title: 'Certificados' };
 export default async function CertificadosPage() {

@@ -1,3 +1,4 @@
+import { HandHeart, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { requireUser } from '@/lib/auth';
 import { getActiveEnrollment, getProgress } from '@/lib/course';
@@ -23,7 +24,7 @@ export default async function DreamTeamPage() {
       <div className="space-y-5">
         <h1 className="text-2xl font-extrabold">Dream Team</h1>
         <div className="card border-green-200 bg-green-50 text-center space-y-3">
-          <p className="text-4xl" aria-hidden>🙌</p>
+          <span className="mx-auto flex items-center justify-center w-14 h-14 rounded-2xl bg-green-100 text-green-700"><HandHeart className="w-7 h-7" aria-hidden /></span>
           <p className="font-bold">Formulario enviado</p>
           <p className="text-sm text-gray-600">La iglesia revisará tus intereses y te contactará para conectarte con un ministerio.</p>
           <Link href="/progreso" className="btn-primary">Ver mi progreso</Link>
@@ -42,7 +43,7 @@ export default async function DreamTeamPage() {
 function Locked({ msg, href, cta }: { msg: string; href: string; cta: string }) {
   return (
     <div className="card text-center space-y-3">
-      <p className="text-4xl" aria-hidden>🔒</p><p>{msg}</p>
+      <span className="mx-auto flex items-center justify-center w-14 h-14 rounded-2xl bg-gray-100 text-gray-400"><Lock className="w-6 h-6" aria-hidden /></span><p>{msg}</p>
       <Link href={href} className="btn-primary">{cta}</Link>
     </div>
   );

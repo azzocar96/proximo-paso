@@ -59,7 +59,7 @@ export function SpeakersPanel({ steps, speakers }: { steps: number[]; speakers: 
                 <>
                   <p>{s.profiles?.first_name} {s.profiles?.last_name} <span className="text-xs text-gray-400">{s.profiles?.email}</span></p>
                   {s.bio && <p className="text-xs text-gray-600">{s.bio}</p>}
-                  {s.contact_phone && <p className="text-xs text-gray-500">📞 {s.contact_phone}</p>}
+                  {s.contact_phone && <p className="text-xs text-gray-500">Tel: {s.contact_phone}</p>}
                   <button className="text-red-600 underline text-xs" disabled={pending}
                     onClick={() => start(async () => { setMsg(await removeStepSpeaker(n)); router.refresh(); })}>
                     Quitar

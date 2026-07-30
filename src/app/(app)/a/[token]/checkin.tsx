@@ -1,4 +1,5 @@
 'use client';
+import { PartyPopper, Frown, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -46,7 +47,7 @@ export function CheckIn({ token }: { token: string }) {
   if (result) {
     return (
       <div className={`card text-center space-y-4 ${result.ok ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-        <p className="text-5xl" aria-hidden>{result.ok ? '🎉' : '😕'}</p>
+        <span className={`mx-auto flex items-center justify-center w-14 h-14 rounded-2xl ${result.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>{result.ok ? <PartyPopper className="w-7 h-7" aria-hidden /> : <Frown className="w-7 h-7" aria-hidden />}</span>
         <p className="font-bold text-lg">{result.message}</p>
         {result.ok
           ? <Link href="/progreso" className="btn-primary w-full">Ver mi progreso</Link>
@@ -62,7 +63,7 @@ export function CheckIn({ token }: { token: string }) {
 
   return (
     <div className="card text-center space-y-4">
-      <p className="text-5xl" aria-hidden>📍</p>
+      <span className="mx-auto flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-50 text-brand-600"><MapPin className="w-7 h-7" aria-hidden /></span>
       <p className="text-gray-700">
         Para registrar tu asistencia necesitamos verificar que estás en el lugar de la clase.
         Tu ubicación exacta <strong>no se guarda</strong>: solo la distancia al punto de reunión.

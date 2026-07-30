@@ -53,7 +53,7 @@ export function Scanner() {
         <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
         {!active && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <button className="btn-primary" onClick={start}>📷 Activar cámara</button>
+            <button className="btn-primary" onClick={start}>Activar cámara</button>
           </div>
         )}
         <canvas ref={canvasRef} className="hidden" />
