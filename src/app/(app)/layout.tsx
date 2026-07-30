@@ -22,9 +22,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen pb-24 md:pb-0 md:flex">
       <aside className="hidden md:flex md:flex-col w-60 shrink-0 bg-brand-800 text-white min-h-screen p-4 gap-1">
-        <div className="flex items-center gap-2 px-2 py-4">
-          <img src="/icon.svg" alt="" className="w-9 h-9" />
-          <span className="font-bold">Próximo Paso</span>
+        <div className="px-2 py-4">
+          {/* Logo real de la iglesia (logo.png), no el ícono placeholder */}
+          <div className="bg-white rounded-xl px-3 py-2 inline-block">
+            <img src="/logo.png" alt="Próximo Paso" className="h-8 w-auto" />
+          </div>
         </div>
         {NAV.map((n) => (
           <Link key={n.href} href={n.href} className="rounded-xl px-4 py-3 hover:bg-brand-700 font-medium">
