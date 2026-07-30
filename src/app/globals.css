@@ -3,22 +3,36 @@
 @tailwind utilities;
 
 :root {
-  /* Variables de marca — Próximo Paso (naranja/blanco, logo entregado 28-jul-2026) */
+  /* Variables de marca — Próximo Paso (naranja #FE4703, logo 28-jul-2026).
+     Rediseño 30-jul-2026: estilo claro y limpio, naranja solo como acento. */
   --brand-50: 255 247 237;
   --brand-100: 255 237 213;
+  --brand-200: 254 215 170;
+  --brand-500: 254 100 40;
   --brand-600: 254 71 3;
   --brand-700: 213 60 3;
   --brand-800: 114 32 1;
   --accent: 245 158 11;
 }
 
-body { @apply bg-gray-50 text-gray-900 antialiased; }
+body { @apply bg-gray-50/80 text-gray-900 antialiased; }
 
-.btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-semibold transition focus:outline-none focus:ring-4 disabled:opacity-50 disabled:pointer-events-none; }
-.btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-100; }
-.btn-secondary { @apply btn bg-white text-brand-700 border-2 border-brand-600 hover:bg-brand-50 focus:ring-brand-100; }
-.btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-100; }
-.input { @apply w-full rounded-xl border border-gray-300 px-4 py-3 text-base focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none bg-white; }
-.label { @apply block text-sm font-semibold text-gray-700 mb-1; }
-.card { @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-5; }
-.badge { @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold; }
+/* Botones: más contenidos, menos "burbuja" */
+.btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none; }
+.btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-600 shadow-sm; }
+.btn-secondary { @apply btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:text-gray-900 focus-visible:ring-gray-400 shadow-sm; }
+.btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600 shadow-sm; }
+
+.input { @apply w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 focus:outline-none; }
+.label { @apply block text-[13px] font-medium text-gray-600 mb-1.5; }
+
+.card { @apply bg-white rounded-xl border border-gray-200/80 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)]; }
+.badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium; }
+
+/* Navegación lateral */
+.nav-item { @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors; }
+.nav-item-icon { @apply w-[18px] h-[18px] shrink-0 text-gray-400; }
+.nav-item:hover .nav-item-icon { @apply text-brand-600; }
+
+/* Encabezados de página consistentes */
+h1 { letter-spacing: -0.02em; }

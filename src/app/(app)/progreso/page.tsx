@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { CheckCircle2, Clock, CircleDot, Lock } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getActiveEnrollment, getProgress, progressPercent } from '@/lib/course';
 import { fmtDate, fmtTime } from '@/lib/utils';
@@ -45,7 +46,7 @@ export default async function ProgresoPage() {
   const certSession = p.steps.find((x) => x.is_certification);
   if (certSession) {
     items.push({
-      label: `🎓 ${certSession.name}`,
+      label: certSession.name,
       sub: certSession.date ? `${fmtDate(certSession.date)}${certSession.start_time ? ' · ' + fmtTime(certSession.start_time) : ''}` : 'Fecha por confirmar',
       state: certSession.attended ? 'done' : certSession.unlocked ? 'pending' : 'locked',
     });
@@ -75,14 +76,17 @@ export default async function ProgresoPage() {
 }
 
 function ItemCard({ label, sub, state, href }: { label: string; sub?: string; state: 'done' | 'pending' | 'review' | 'locked'; href?: string }) {
-  const icon = state === 'done' ? '✅' : state === 'review' ? '⏳' : state === 'pending' ? '🟡' : '🔒';
-  const cls = state === 'done' ? 'border-green-200 bg-green-50'
-    : state === 'review' ? 'border-blue-200 bg-blue-50'
-    : state === 'pending' ? 'border-amber-200 bg-amber-50' : 'bg-gray-50 opacity-70';
+  const icon = state === 'done' ? <CheckCircle2 className="w-6 h-6 text-green-600" aria-hidden />
+    : state === 'review' ? <Clock className="w-6 h-6 text-blue-600" aria-hidden />
+    : state === 'pending' ? <CircleDot className="w-6 h-6 text-amber-500" aria-hidden />
+    : <Lock className="w-5 h-5 text-gray-400" aria-hidden />;
+  const cls = state === 'done' ? 'border-green-200/70 bg-green-50/50'
+    : state === 'review' ? 'border-blue-200/70 bg-blue-50/50'
+    : state === 'pending' ? 'border-amber-200/70 bg-amber-50/50' : 'bg-gray-50 opacity-70';
   const label2 = state === 'done' ? 'Completado' : state === 'review' ? 'En revisión' : state === 'pending' ? 'Pendiente' : 'Bloqueado';
   const inner = (
     <div className={`card flex items-center gap-4 ${cls}`}>
-      <span className="text-2xl" aria-hidden>{icon}</span>
+      {icon}
       <div className="flex-1">
         <p className="font-semibold">{label}</p>
         {sub && <p className="text-sm text-gray-600">{sub}</p>}

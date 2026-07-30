@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { getSettings, str } from '@/lib/settings';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export async function generateMetadata(): Promise<Metadata> {
   let church = 'Iglesia';
@@ -20,8 +23,8 @@ export const viewport: Viewport = { themeColor: '#FE4703', width: 'device-width'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body>{children}</body>
+    <html lang="es" className={inter.variable}>
+      <body className="font-sans">{children}</body>
     </html>
   );
 }
