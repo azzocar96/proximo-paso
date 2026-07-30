@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ScanLine, CalendarDays, BookOpen, Megaphone, CheckCircle2, CircleDot, Lock, ArrowRight } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getActiveEnrollment, getProgress, progressPercent, nextActivity } from '@/lib/course';
 import { fmtDate, fmtTime } from '@/lib/utils';
@@ -20,36 +21,43 @@ export default async function InicioPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-extrabold">Hola, {profile?.first_name || 'bienvenido'} 👋</h1>
+      <div>
+        <h1 className="text-2xl font-extrabold">Hola, {profile?.first_name || 'bienvenido'}</h1>
+        <p className="text-sm text-gray-500">Qué bueno verte por aquí.</p>
+      </div>
 
       {sessionToday && (
-        <Link href="/escanear" className="card flex items-center justify-between bg-brand-600 !border-brand-600 text-white hover:bg-brand-700">
-          <div>
+        <Link href="/escanear" className="card card-hover relative overflow-hidden flex items-center justify-between !border-transparent bg-gradient-to-r from-brand-600 to-brand-500 text-white">
+          <div aria-hidden className="pointer-events-none absolute inset-0 bg-grid-dark opacity-40" />
+          <div className="relative">
             <p className="font-bold text-lg">¡Hoy es {sessionToday.name}!</p>
             <p className="text-brand-100 text-sm">Toca aquí para escanear el QR y registrar tu asistencia.</p>
           </div>
-          <span className="text-3xl" aria-hidden>📷</span>
+          <ScanLine className="relative w-9 h-9 opacity-90" aria-hidden />
         </Link>
       )}
 
       {enrollment && progress ? (
-        <section className="card space-y-3">
+        <section className="card space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-bold">{(enrollment as any).course_cycles?.name}</h2>
             <StatusBadge status={enrollment.status} label={ENROLLMENT_LABEL[enrollment.status]} />
           </div>
           <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Tu progreso</span>
-              <span className="font-bold">{progressPercent(progress)}%</span>
+            <div className="flex justify-between text-sm mb-1.5">
+              <span className="text-gray-500">Tu progreso</span>
+              <span className="font-bold tabular-nums">{progressPercent(progress)}%</span>
             </div>
-            <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
-              <div className="h-full bg-brand-600 rounded-full transition-all" style={{ width: `${progressPercent(progress)}%` }} />
+            <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+              <div className="h-full rounded-full bg-gradient-to-r from-brand-600 to-accent transition-all" style={{ width: `${progressPercent(progress)}%` }} />
             </div>
           </div>
           <p className="text-sm"><span className="font-semibold">Siguiente:</span> {nextActivity(progress)}</p>
           {nextSession?.date && (
-            <p className="text-sm text-gray-600">📅 {nextSession.name}: {fmtDate(nextSession.date)}{nextSession.start_time ? ` · ${fmtTime(nextSession.start_time)}` : ''}</p>
+            <p className="text-sm text-gray-600 inline-flex items-center gap-1.5">
+              <CalendarDays className="w-4 h-4 text-brand-600" aria-hidden />
+              {nextSession.name}: {fmtDate(nextSession.date)}{nextSession.start_time ? ` · ${fmtTime(nextSession.start_time)}` : ''}
+            </p>
           )}
           <div className="flex gap-2 flex-wrap">
             <Link href="/progreso" className="btn-secondary text-sm !py-2">Ver mi progreso</Link>
@@ -57,11 +65,13 @@ export default async function InicioPage() {
           </div>
         </section>
       ) : (
-        <section className="card text-center space-y-3">
-          <p className="text-4xl" aria-hidden>📚</p>
+        <section className="card text-center space-y-3 py-8">
+          <span className="mx-auto flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-50 text-brand-600">
+            <BookOpen className="w-7 h-7" aria-hidden />
+          </span>
           <h2 className="font-bold text-lg">Aún no estás inscrito en un ciclo</h2>
           <p className="text-gray-600 text-sm">Inscríbete en el próximo ciclo del curso para comenzar.</p>
-          <Link href="/curso" className="btn-primary">Ver ciclos disponibles</Link>
+          <Link href="/curso" className="btn-primary inline-flex">Ver ciclos disponibles</Link>
         </section>
       )}
 
@@ -73,11 +83,18 @@ export default async function InicioPage() {
       )}
 
       {ann && (
-        <section className="card">
-          <p className="text-xs font-bold text-accent uppercase mb-1">📣 Último anuncio</p>
-          <h3 className="font-bold">{ann.title}</h3>
-          <p className="text-sm text-gray-600 line-clamp-2">{ann.content}</p>
-          <Link href="/anuncios" className="text-sm text-brand-600 underline">Ver todos</Link>
+        <section className="card flex gap-3">
+          <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-accent/10 text-amber-600 shrink-0">
+            <Megaphone className="w-[18px] h-[18px]" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold text-amber-600 uppercase tracking-widest mb-0.5">Último anuncio</p>
+            <h3 className="font-bold">{ann.title}</h3>
+            <p className="text-sm text-gray-600 line-clamp-2">{ann.content}</p>
+            <Link href="/anuncios" className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700 mt-1">
+              Ver todos <ArrowRight className="w-3.5 h-3.5" aria-hidden />
+            </Link>
+          </div>
         </section>
       )}
     </div>
@@ -85,13 +102,16 @@ export default async function InicioPage() {
 }
 
 function Requisito({ done, unlocked, href, label }: { done: boolean; unlocked: boolean; href: string; label: string }) {
-  const state = done ? '✅ Completado' : unlocked ? '🟡 Pendiente' : '🔒 Bloqueado';
-  const cls = done ? 'border-green-200 bg-green-50' : unlocked ? 'border-amber-200 bg-amber-50' : 'border-gray-200 bg-gray-50 opacity-70';
+  const icon = done ? <CheckCircle2 className="w-4 h-4 text-green-600" aria-hidden />
+    : unlocked ? <CircleDot className="w-4 h-4 text-amber-500" aria-hidden />
+    : <Lock className="w-3.5 h-3.5 text-gray-400" aria-hidden />;
+  const state = done ? 'Completado' : unlocked ? 'Pendiente' : 'Bloqueado';
+  const cls = done ? 'border-green-200/70 bg-green-50/50' : unlocked ? 'border-amber-200/70 bg-amber-50/50' : 'border-gray-200 bg-gray-50 opacity-70';
   return (
     <Link href={unlocked || done ? href : '#'} aria-disabled={!unlocked && !done}
-      className={`card !p-4 ${cls} ${!unlocked && !done ? 'pointer-events-none' : ''}`}>
+      className={`card !p-4 card-hover ${cls} ${!unlocked && !done ? 'pointer-events-none' : ''}`}>
       <p className="font-semibold text-sm">{label}</p>
-      <p className="text-xs mt-1">{state}</p>
+      <p className="text-xs mt-1.5 inline-flex items-center gap-1.5 text-gray-600">{icon} {state}</p>
     </Link>
   );
 }

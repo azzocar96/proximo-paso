@@ -76,7 +76,7 @@ export function RescheduleForm({ session }: { session: any }) {
         {mode === 'same_week' ? 'Reprogramar esta clase' : 'Correr ciclo una semana'}
       </button>
       {mode === 'next_week' && (
-        <p className="text-xs text-amber-700">⚠️ Esto mueve esta sesión y todas las siguientes del ciclo +7 días, y la fecha de certificación si está definida.</p>
+        <p className="text-xs text-amber-700">Esto mueve esta sesión y todas las siguientes del ciclo +7 días, y la fecha de certificación si está definida.</p>
       )}
     </div>
   );
@@ -89,7 +89,7 @@ export function CertificationSessionForm({ cycleId, suggestedDate }: { cycleId: 
   const router = useRouter();
   return (
     <div className="card space-y-2 text-sm border-dashed">
-      <p className="font-semibold">🎓 Este ciclo aún no tiene sesión de certificación</p>
+      <p className="font-semibold">Este ciclo aún no tiene sesión de certificación</p>
       <p className="text-xs text-gray-500">
         Si el ciclo cae en un mes de 5 domingos, la entrega de certificados es una 5ª sesión real
         (con su propia fecha y asistencia). Si son 4 domingos, no hace falta: el certificado se entrega en el Paso 4.

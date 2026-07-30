@@ -40,7 +40,7 @@ export function SpeakerRequests({ requests }: { requests: any[] }) {
             </div>
           </li>
         ))}
-        {requests.length === 0 && <li className="py-2 text-gray-500">No hay solicitudes pendientes de tu paso. 🎉</li>}
+        {requests.length === 0 && <li className="py-2 text-gray-500">No hay solicitudes pendientes de tu paso.</li>}
       </ul>
     </section>
   );

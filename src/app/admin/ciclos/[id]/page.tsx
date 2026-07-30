@@ -30,7 +30,7 @@ export default async function CicloDetailPage({ params }: { params: { id: string
             <details key={s.id} className="card">
               <summary className="cursor-pointer flex items-center justify-between">
                 <span className="font-semibold">
-                  {s.is_certification ? '🎓 Certificación' : `Paso ${s.step_number}`}: {s.name} {s.session_date ? `· ${fmtDate(s.session_date)}` : '· sin fecha'}
+                  {s.is_certification ? 'Certificación' : `Paso ${s.step_number}`}: {s.name} {s.session_date ? `· ${fmtDate(s.session_date)}` : '· sin fecha'}
                 </span>
                 <span className="flex items-center gap-2">
                   <StatusBadge status={s.status} label={{ scheduled: 'Programada', open: 'Abierta', closed: 'Cerrada', cancelled: 'Cancelada' }[s.status as string]} />

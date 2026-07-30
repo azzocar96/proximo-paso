@@ -31,7 +31,7 @@ export default async function OradorPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-extrabold">🎤 Mi paso</h1>
+      <h1 className="text-2xl font-extrabold">Mi paso</h1>
       <div className="card text-sm space-y-1">
         <p>Eres orador de: <b>{stepNumbers.map((n) => `Paso ${n}`).join(', ')}</b></p>
         <p className="text-xs text-gray-500">

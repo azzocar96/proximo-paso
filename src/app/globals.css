@@ -36,3 +36,10 @@ body { @apply bg-gray-50/80 text-gray-900 antialiased; }
 
 /* Encabezados de página consistentes */
 h1 { letter-spacing: -0.02em; }
+
+/* Utilidades "tech" del rediseño fase 2 */
+.bg-grid { background-image: linear-gradient(to right, rgb(17 24 39 / 0.045) 1px, transparent 1px), linear-gradient(to bottom, rgb(17 24 39 / 0.045) 1px, transparent 1px); background-size: 36px 36px; }
+.bg-grid-dark { background-image: linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px); background-size: 36px 36px; }
+.grad-text { @apply bg-gradient-to-r from-brand-600 via-brand-500 to-accent bg-clip-text text-transparent; }
+.glass { @apply bg-white/70 backdrop-blur-xl border border-gray-200/60; }
+.card-hover { @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(0_0_0/0.08)]; }
