@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { User, BookOpen, HeartHandshake, Mail, Mic, Wrench, ChevronRight } from 'lucide-react';
+import { User, Users, BookOpen, HeartHandshake, Mail, Mic, Wrench, ChevronRight } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { ProfileForm, AvatarForm } from './ui';
 import { signOut } from '@/lib/actions/auth';
@@ -7,10 +7,11 @@ import { signOut } from '@/lib/actions/auth';
 export const metadata = { title: 'Mi perfil' };
 export default async function PerfilPage() {
   const { supabase, user } = await requireUser();
-  const [{ data: profile }, { data: role }, { data: mySpeakerSteps }] = await Promise.all([
+  const [{ data: profile }, { data: role }, { data: mySpeakerSteps }, { data: myLedMinistries }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.rpc('fn_role'),
     supabase.from('step_speakers').select('step_number').eq('user_id', user.id),
+    supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
   ]);
   const isStaff = ['coordinator', 'pastor', 'superadmin'].includes(role as string);
   const isSpeaker = (mySpeakerSteps ?? []).length > 0;
@@ -18,6 +19,8 @@ export default async function PerfilPage() {
     { href: '/curso', label: 'Mi curso', Icon: BookOpen },
     { href: '/ministerios', label: 'Ministerios', Icon: HeartHandshake },
     { href: '/contacto', label: 'Contacto', Icon: Mail },
+    ...((myLedMinistries ?? []).length > 0 || ['pastor', 'superadmin'].includes(role as string)
+      ? [{ href: '/liderazgo', label: 'Mi ministerio (director)', Icon: Users }] : []),
     ...(isSpeaker ? [{ href: '/orador', label: 'Mi paso (orador)', Icon: Mic }] : []),
     ...(isStaff ? [{ href: '/admin', label: 'Panel admin', Icon: Wrench }] : []),
   ];

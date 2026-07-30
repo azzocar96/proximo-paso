@@ -2,6 +2,8 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { setRole, setAccountStatus } from '@/lib/actions/admin';
+import { acceptMemberRequest, rejectMemberRequest } from '@/lib/actions/ministry';
+import { useRouter } from 'next/navigation';
 import { Alert } from '@/components/ui/Alert';
 
 // Nota (Fase 3a): "admin" quedó inerte (sin permisos) — se conserva la
@@ -55,5 +57,48 @@ export function UsersTable({ users, canSetRoles }: { users: any[]; canSetRoles: 
         </table>
       </div>
     </div>
+  );
+}
+
+/** Solicitudes de cambio de rol (Fase 3b): llegan SOLO al administrador/pastor.
+ * Aceptarla no cambia el rol automáticamente: el admin lo aplica en la tabla
+ * de arriba (dropdown de rol) y aquí deja la solicitud resuelta y auditada. */
+export function RoleChangeRequests({ requests }: { requests: any[] }) {
+  const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  return (
+    <section className="card space-y-2 border-blue-200 bg-blue-50">
+      <h2 className="font-bold text-sm">Solicitudes de cambio de rol ({requests.length})</h2>
+      <p className="text-xs text-gray-500">
+        Al aceptar, aplica tú el rol nuevo con el selector de la tabla de abajo; la solicitud queda resuelta y auditada.
+      </p>
+      {msg?.error && <Alert kind="error">{msg.error}</Alert>}
+      {msg?.success && <Alert kind="success">{msg.success}</Alert>}
+      <ul className="divide-y divide-blue-100 text-sm">
+        {requests.map((r) => (
+          <li key={r.id} className="py-2 space-y-1">
+            <div className="flex justify-between flex-wrap gap-1">
+              <span className="font-medium">{r.profiles?.first_name} {r.profiles?.last_name} <span className="text-xs text-gray-400">{r.profiles?.email}</span></span>
+              <span className="text-xs text-gray-500">{r.since}</span>
+            </div>
+            {r.details && <p className="text-gray-600 italic">"{r.details}"</p>}
+            <div className="flex gap-3">
+              <button className="btn-primary !py-1 !px-3 text-xs" disabled={pending}
+                onClick={() => start(async () => { setMsg(await acceptMemberRequest(r.id)); router.refresh(); })}>
+                Aceptar
+              </button>
+              <button className="text-red-600 underline text-xs" disabled={pending} onClick={() => {
+                const motivo = prompt('Motivo del rechazo (obligatorio, la persona podrá verlo):');
+                if (!motivo) return;
+                start(async () => { setMsg(await rejectMemberRequest(r.id, motivo)); router.refresh(); });
+              }}>
+                Rechazar
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

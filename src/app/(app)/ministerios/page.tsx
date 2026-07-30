@@ -1,32 +1,87 @@
+import { HeartHandshake, Users } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
-import { MINISTRY_ASSIGN_LABEL } from '@/lib/utils';
+import { MINISTRY_ASSIGN_LABEL, MEMBER_REQUEST_KIND_LABEL, fmtDate } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { InterestButton } from './ui';
+import { JoinRequestPanel, SelfServicePanel, PendingRequestCard } from './ui';
 
 export const metadata = { title: 'Ministerios' };
 export default async function MinisteriosPage() {
   const { supabase, user } = await requireUser();
-  const [{ data: ministries }, { data: mine }] = await Promise.all([
-    supabase.from('ministries').select('*').eq('status', 'active').order('name'),
-    supabase.from('ministry_assignments').select('ministry_id,status').eq('user_id', user.id),
+  const [{ data: ministries }, { data: mine }, { data: myRequests }, { data: resolved }] = await Promise.all([
+    supabase.from('ministries').select('*').eq('status', 'active').is('deleted_at', null).order('name'),
+    supabase.from('ministry_assignments').select('ministry_id,status, ministries(name)').eq('user_id', user.id),
+    supabase.from('member_requests').select('*, ministries:target_ministry_id(name)')
+      .eq('user_id', user.id).eq('status', 'pending').order('created_at'),
+    supabase.from('member_requests').select('*, ministries:target_ministry_id(name)')
+      .eq('user_id', user.id).in('status', ['accepted', 'rejected'])
+      .order('resolved_at', { ascending: false }).limit(3),
   ]);
+  const current = (mine ?? []).find((m) => ['assigned', 'active'].includes(m.status));
   const mineMap = new Map((mine ?? []).map((m) => [m.ministry_id, m.status]));
+  const pendingKinds = new Set((myRequests ?? []).map((r) => r.kind));
+  const activeMinistries = (ministries ?? []).map((m) => ({ id: m.id, name: m.name }));
+
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Ministerios</h1>
-      <p className="text-sm text-gray-600">Conoce los equipos de la iglesia. Puedes expresar tu interés y te contactarán.</p>
+
+      {current && (
+        <section className="card space-y-1 border-brand-200/60 bg-brand-50/40">
+          <p className="text-[11px] font-bold text-brand-600 uppercase tracking-widest inline-flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5" aria-hidden /> Tu ministerio
+          </p>
+          <p className="font-bold text-lg">{(current as any).ministries?.name}</p>
+          <p className="text-xs text-gray-500">Sirves en este equipo. Si necesitas un cambio, pídelo abajo y lo verá quien corresponde.</p>
+        </section>
+      )}
+
+      {(myRequests ?? []).map((r: any) => (
+        <PendingRequestCard key={r.id} id={r.id}
+          label={MEMBER_REQUEST_KIND_LABEL[r.kind] ?? r.kind}
+          detail={r.kind === 'join'
+            ? `${(r.ministry_preferences ?? []).length} ministerio(s) elegido(s) — el primer director que acepte te suma a su equipo`
+            : r.kind === 'role_change' ? (r.details ?? '')
+            : (r.ministries?.name ?? '')}
+          since={fmtDate(r.created_at)} />
+      ))}
+
+      {(resolved ?? []).map((r: any) => (
+        <section key={r.id} className={`card space-y-1 ${r.status === 'accepted' ? 'border-green-200/70 bg-green-50/40' : 'border-red-200/70 bg-red-50/40'}`}>
+          <p className={`text-[11px] font-bold uppercase tracking-widest ${r.status === 'accepted' ? 'text-green-700' : 'text-red-600'}`}>
+            {r.status === 'accepted' ? 'Solicitud aceptada' : 'Solicitud rechazada'} · {fmtDate(r.resolved_at)}
+          </p>
+          <p className="font-semibold text-sm">{MEMBER_REQUEST_KIND_LABEL[r.kind] ?? r.kind}{r.ministries?.name ? ` · ${r.ministries.name}` : ''}</p>
+          {r.resolution_note && <p className="text-sm text-gray-600">Nota: {r.resolution_note}</p>}
+        </section>
+      ))}
+
+      {!current && !pendingKinds.has('join') && (
+        <JoinRequestPanel ministries={activeMinistries} />
+      )}
+
+      {current && (
+        <SelfServicePanel
+          currentMinistryId={current.ministry_id}
+          currentMinistryName={(current as any).ministries?.name ?? ''}
+          otherMinistries={activeMinistries.filter((m) => m.id !== current.ministry_id)}
+          pendingKinds={[...pendingKinds] as string[]}
+        />
+      )}
+
+      <h2 className="text-lg font-bold pt-2">Conoce los equipos</h2>
       {(ministries ?? []).map((m) => (
         <section key={m.id} className="card space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="font-bold">{m.name}</h2>
+              <h3 className="font-bold inline-flex items-center gap-2">
+                <HeartHandshake className="w-4 h-4 text-brand-600" aria-hidden /> {m.name}
+              </h3>
               {m.leader_name && <p className="text-xs text-gray-500">Líder: {m.leader_name}</p>}
             </div>
             {mineMap.has(m.id) && <StatusBadge status={mineMap.get(m.id)!} label={MINISTRY_ASSIGN_LABEL[mineMap.get(m.id)!]} />}
           </div>
           {m.description && <p className="text-sm text-gray-600">{m.description}</p>}
           {m.requirements && <p className="text-xs text-amber-700">Requisitos: {m.requirements}</p>}
-          {!mineMap.has(m.id) && <InterestButton ministryId={m.id} />}
         </section>
       ))}
       {(ministries ?? []).length === 0 && <p className="card text-sm text-gray-600">La iglesia aún no publicó sus ministerios.</p>}

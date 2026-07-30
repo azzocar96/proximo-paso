@@ -34,6 +34,10 @@ export const MINISTRY_ASSIGN_LABEL: Record<string, string> = {
   contacted: 'Contactado', interview_scheduled: 'Entrevista agendada', assigned: 'Asignado',
   active: 'Activo', inactive: 'Inactivo', declined: 'Declinado',
 };
+export const MEMBER_REQUEST_KIND_LABEL: Record<string, string> = {
+  join: 'Ingreso a ministerio', leave: 'Baja de ministerio',
+  switch: 'Cambio de ministerio', role_change: 'Cambio de rol',
+};
 export const CYCLE_LABEL: Record<string, string> = {
   draft: 'Borrador', registration_open: 'Inscripciones abiertas', active: 'Activo',
   completed: 'Completado', cancelled: 'Cancelado', archived: 'Archivado',

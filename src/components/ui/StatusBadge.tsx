@@ -11,6 +11,8 @@ const COLORS: Record<string, string> = {
   requirements_pending: 'bg-amber-100 text-amber-800', pending_approval: 'bg-amber-100 text-amber-800',
   eligible: 'bg-amber-100 text-amber-800', physical_pending: 'bg-amber-100 text-amber-800',
   ready_for_pickup: 'bg-amber-100 text-amber-800', pending_contact: 'bg-amber-100 text-amber-800',
+  pending: 'bg-amber-100 text-amber-800', accepted: 'bg-green-100 text-green-800',
+  rejected: 'bg-red-100 text-red-700',
   suggested: 'bg-purple-100 text-purple-800', scheduled: 'bg-gray-100 text-gray-700',
   draft: 'bg-gray-100 text-gray-700', new: 'bg-blue-100 text-blue-800',
   withdrawn: 'bg-gray-100 text-gray-500', cancelled: 'bg-red-100 text-red-700',

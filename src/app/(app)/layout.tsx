@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {
   Home, TrendingUp, ScanLine, Megaphone, User, BookOpen,
-  HeartHandshake, Mail, Mic, Wrench, LogOut,
+  HeartHandshake, Mail, Mic, Wrench, LogOut, Users,
 } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { signOut } from '@/lib/actions/auth';
@@ -16,13 +16,15 @@ const NAV = [
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user } = await requireUser();
-  const [{ data: role }, { data: mySpeakerSteps }] = await Promise.all([
+  const [{ data: role }, { data: mySpeakerSteps }, { data: myLedMinistries }] = await Promise.all([
     supabase.rpc('fn_role'),
     supabase.from('step_speakers').select('step_number').eq('user_id', user.id),
+    supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
   ]);
   // Nota (Fase 3a): "admin" quedó inerte — el nivel más alto ahora es pastor/superadmin.
   const isStaff = ['coordinator', 'pastor', 'superadmin'].includes(role as string);
   const isSpeaker = (mySpeakerSteps ?? []).length > 0;
+  const isLeader = (myLedMinistries ?? []).length > 0 || ['pastor', 'superadmin'].includes(role as string);
   return (
     <div className="min-h-screen pb-24 md:pb-0 md:flex">
       <aside className="hidden md:flex md:flex-col w-64 shrink-0 bg-white border-r border-gray-200 min-h-screen p-4 gap-0.5">
@@ -38,7 +40,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Link href="/curso" className="nav-item"><BookOpen className="nav-item-icon" aria-hidden /> Mi curso</Link>
         <Link href="/ministerios" className="nav-item"><HeartHandshake className="nav-item-icon" aria-hidden /> Ministerios</Link>
         <Link href="/contacto" className="nav-item"><Mail className="nav-item-icon" aria-hidden /> Contacto</Link>
-        {(isSpeaker || isStaff) && <div className="my-2 border-t border-gray-100" />}
+        {(isSpeaker || isStaff || isLeader) && <div className="my-2 border-t border-gray-100" />}
+        {isLeader && (
+          <Link href="/liderazgo" className="nav-item !text-brand-700 hover:!bg-brand-50">
+            <Users className="nav-item-icon !text-brand-600" aria-hidden /> Mi ministerio
+          </Link>
+        )}
         {isSpeaker && (
           <Link href="/orador" className="nav-item !text-brand-700 hover:!bg-brand-50">
             <Mic className="nav-item-icon !text-brand-600" aria-hidden /> Mi paso
