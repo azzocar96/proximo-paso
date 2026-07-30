@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireStaff } from '@/lib/auth';
 import { CycleForm } from '../form';
-import { SessionForm, CoordinatorForm, SuggestDateNote, RescheduleForm } from './ui';
+import { SessionForm, CoordinatorForm, SuggestDateNote, RescheduleForm, CertificationSessionForm } from './ui';
 import { fmtDate, ENROLLMENT_LABEL } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
@@ -39,12 +39,17 @@ export default async function CicloDetailPage({ params }: { params: { id: string
               </summary>
               <div className="pt-4">
                 <SessionForm session={s} />
-                {isAdmin && <RescheduleForm session={s} />}
+                {/* key con la fecha: remonta el form tras reprogramar para no mostrar la fecha vieja */}
+                {isAdmin && <RescheduleForm key={`${s.id}-${s.session_date ?? 'sin-fecha'}`} session={s} />}
               </div>
             </details>
           ))}
         </div>
         {suggested && <SuggestDateNote suggested={suggested as unknown as string} current={cycle.certificate_delivery_date} />}
+        {isAdmin && !(sessions ?? []).some((s) => s.is_certification) && (
+          <CertificationSessionForm cycleId={cycle.id}
+            suggestedDate={cycle.certificate_delivery_date ?? (suggested as unknown as string) ?? null} />
+        )}
       </section>
 
       {isAdmin && (

@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { saveSession, assignCoordinator, cancelAndRescheduleSession } from '@/lib/actions/admin';
+import { saveSession, assignCoordinator, cancelAndRescheduleSession, createCertificationSession } from '@/lib/actions/admin';
 import { Alert } from '@/components/ui/Alert';
 import { fmtDate } from '@/lib/utils';
 
@@ -78,6 +78,36 @@ export function RescheduleForm({ session }: { session: any }) {
       {mode === 'next_week' && (
         <p className="text-xs text-amber-700">⚠️ Esto mueve esta sesión y todas las siguientes del ciclo +7 días, y la fecha de certificación si está definida.</p>
       )}
+    </div>
+  );
+}
+
+export function CertificationSessionForm({ cycleId, suggestedDate }: { cycleId: string; suggestedDate: string | null }) {
+  const [date, setDate] = useState(suggestedDate ?? '');
+  const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  return (
+    <div className="card space-y-2 text-sm border-dashed">
+      <p className="font-semibold">🎓 Este ciclo aún no tiene sesión de certificación</p>
+      <p className="text-xs text-gray-500">
+        Si el ciclo cae en un mes de 5 domingos, la entrega de certificados es una 5ª sesión real
+        (con su propia fecha y asistencia). Si son 4 domingos, no hace falta: el certificado se entrega en el Paso 4.
+      </p>
+      {msg?.error && <Alert kind="error">{msg.error}</Alert>}
+      {msg?.success && <Alert kind="success">{msg.success}</Alert>}
+      <div className="flex flex-wrap gap-2 items-end">
+        <div><label className="label">Fecha (opcional)</label>
+          <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div>
+        <button className="btn-secondary !py-2" disabled={pending}
+          onClick={() => start(async () => {
+            const res = await createCertificationSession(cycleId, date || null);
+            setMsg(res);
+            if (res?.success) router.refresh();
+          })}>
+          Crear sesión de certificación
+        </button>
+      </div>
     </div>
   );
 }

@@ -5,14 +5,14 @@ export const metadata = { title: 'Asistencia' };
 export default async function AsistenciaAdminPage({ searchParams }: { searchParams: { sesion?: string } }) {
   const { supabase } = await requireStaff();
   const { data: sessions } = await supabase.from('course_sessions')
-    .select('id,step_number,name,session_date,status, course_cycles(name)')
+    .select('id,step_number,name,session_date,status,is_certification, course_cycles(name)')
     .order('session_date', { ascending: false }).limit(60);
   const selected = searchParams.sesion ?? (sessions?.[0]?.id ?? null);
   let records: any[] = [], enrolled: any[] = [];
   if (selected) {
     const [{ data: r }, { data: s }] = await Promise.all([
       supabase.from('attendance_records')
-        .select('id,user_id,method,result,distance_meters,accuracy_meters,recorded_at,manual_reason, profiles(first_name,last_name,email)')
+        .select('id,user_id,method,result,distance_meters,accuracy_meters,recorded_at,manual_reason, profiles!attendance_records_user_id_fkey(first_name,last_name,email)')
         .eq('session_id', selected).order('recorded_at'),
       supabase.from('course_sessions').select('cycle_id').eq('id', selected).single()
         .then(async ({ data: sess }) => sess
@@ -23,7 +23,7 @@ export default async function AsistenciaAdminPage({ searchParams }: { searchPara
     records = r ?? []; enrolled = (s as any) ?? [];
   }
   const { data: pendingRequests } = await supabase.from('attendance_records')
-    .select('id,user_id,request_note,recorded_at,session_id, profiles(first_name,last_name,email), course_sessions(step_number,name,session_date,course_cycles(name))')
+    .select('id,user_id,request_note,recorded_at,session_id, profiles!attendance_records_user_id_fkey(first_name,last_name,email), course_sessions(step_number,name,session_date,is_certification,course_cycles(name))')
     .eq('result', 'pending_approval').order('recorded_at');
   return (
     <div className="space-y-5">

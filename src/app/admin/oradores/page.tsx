@@ -9,7 +9,8 @@ export default async function OradoresPage() {
   const { supabase } = await requireAdmin();
   const { data: speakers } = await supabase
     .from('step_speakers')
-    .select('*, profiles(id,first_name,last_name,email)')
+    // profiles! desambiguado: step_speakers tiene 2 FKs a profiles (user_id y assigned_by)
+    .select('*, profiles!step_speakers_user_id_fkey(id,first_name,last_name,email)')
     .order('step_number');
   return (
     <div className="space-y-6">

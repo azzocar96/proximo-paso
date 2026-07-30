@@ -10,7 +10,7 @@ export default async function ConfigPage() {
       <h1 className="text-2xl font-extrabold">Configuración</h1>
       <p className="text-sm text-gray-600">
         Nombre de la iglesia, curso, marca, contacto, política de privacidad, firmas del certificado y reglas del negocio.
-        Las claves críticas solo las cambia el superadministrador.
+        Las claves críticas solo las cambia el administrador o el pastor.
       </p>
       <SettingsForm settings={(settings as any) ?? []} isSuper={role === 'superadmin' || role === 'pastor'} />
     </div>

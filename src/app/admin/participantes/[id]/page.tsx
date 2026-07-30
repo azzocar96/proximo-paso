@@ -62,7 +62,7 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
           {progress ? (
             <ul className="space-y-1">
               {progress.steps?.map((s: any) => (
-                <li key={s.step}>{s.attended ? '✅' : s.unlocked ? '🟡' : '🔒'} Paso {s.step} {s.date ? `· ${fmtDate(s.date)}` : ''}</li>
+                <li key={s.step}>{s.attended ? '✅' : s.unlocked ? '🟡' : '🔒'} {s.is_certification ? '🎓 Certificación' : `Paso ${s.step}`} {s.date ? `· ${fmtDate(s.date)}` : ''}</li>
               ))}
               <li>{progress.test_done ? '✅' : '⬜'} Test de personalidad</li>
               <li>{progress.dream_team_done ? '✅' : '⬜'} Dream Team</li>

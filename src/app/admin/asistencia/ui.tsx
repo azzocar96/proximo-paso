@@ -29,7 +29,7 @@ export function AttendancePanel({ sessions, selectedId, records, enrolled, pendi
                 <div className="flex justify-between flex-wrap gap-1">
                   <span className="font-medium">{r.profiles?.first_name} {r.profiles?.last_name}</span>
                   <span className="text-xs text-gray-500">
-                    {r.course_sessions?.course_cycles?.name} · Paso {r.course_sessions?.step_number}
+                    {r.course_sessions?.course_cycles?.name} · {r.course_sessions?.is_certification ? 'Certificación' : `Paso ${r.course_sessions?.step_number}`}
                     {r.course_sessions?.session_date ? ` (${fmtDate(r.course_sessions.session_date)})` : ''}
                   </span>
                 </div>
@@ -56,7 +56,7 @@ export function AttendancePanel({ sessions, selectedId, records, enrolled, pendi
       <select className="input md:max-w-md" value={selectedId ?? ''} onChange={(e) => router.push(`/admin/asistencia?sesion=${e.target.value}`)}>
         {sessions.map((s) => (
           <option key={s.id} value={s.id}>
-            {s.course_cycles?.name} · Paso {s.step_number} {s.session_date ? `(${fmtDate(s.session_date)})` : ''}
+            {s.course_cycles?.name} · {s.is_certification ? 'Certificación' : `Paso ${s.step_number}`} {s.session_date ? `(${fmtDate(s.session_date)})` : ''}
           </option>
         ))}
       </select>

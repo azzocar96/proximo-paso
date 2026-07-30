@@ -7,10 +7,10 @@ export default async function MinisteriosAdminPage() {
   const [{ data: ministries }, { data: assignments }, { data: leaders }] = await Promise.all([
     supabase.from('ministries').select('*').is('deleted_at', null).order('name'),
     supabase.from('ministry_assignments')
-      .select('*, ministries(name), profiles(id,first_name,last_name,email)')
+      .select('*, ministries(name), profiles!ministry_assignments_user_id_fkey(id,first_name,last_name,email)')
       .order('updated_at', { ascending: false }).limit(200),
     supabase.from('ministry_leaders')
-      .select('*, ministries(name), profiles(id,first_name,last_name,email)')
+      .select('*, ministries(name), profiles!ministry_leaders_user_id_fkey(id,first_name,last_name,email)')
       .order('created_at', { ascending: false }),
   ]);
   return (
@@ -39,7 +39,7 @@ export default async function MinisteriosAdminPage() {
         <h2 className="font-bold">Líderes de ministerio</h2>
         <p className="text-xs text-gray-500">
           Un líder ve, en /liderazgo/segmentacion, únicamente a quienes marcaron interés en el ministerio
-          que lidera (Dream Team) — nunca la lista completa. Solo el superadministrador puede asignar o quitar líderes.
+          que lidera (Dream Team) — nunca la lista completa. Solo el administrador o el pastor pueden asignar o quitar líderes.
         </p>
         <MinistryLeadersPanel leaders={(leaders as any) ?? []} ministries={(ministries as any) ?? []} canManage={role === 'superadmin' || role === 'pastor'} />
       </section>

@@ -19,7 +19,7 @@ export default async function ProgresoPage() {
 
   const items: { label: string; sub?: string; state: 'done' | 'pending' | 'review' | 'locked'; href?: string; requestSessionId?: string }[] = [];
   const now = new Date();
-  for (const s of p.steps.filter((x) => x.step <= 3)) {
+  for (const s of p.steps.filter((x) => x.step <= 3 && !x.is_certification)) {
     const past = s.date ? new Date(s.date + 'T23:59:59') < now : false;
     const requestable = s.unlocked && !s.attended && !s.pending && past;
     items.push({
@@ -41,6 +41,15 @@ export default async function ProgresoPage() {
     });
   }
   items.push({ label: 'Certificado', state: p.eligible_for_certificate ? 'pending' : 'locked', href: '/certificado' });
+  // Sesión de certificación (5º domingo, si el ciclo la tiene): entrega presencial
+  const certSession = p.steps.find((x) => x.is_certification);
+  if (certSession) {
+    items.push({
+      label: `🎓 ${certSession.name}`,
+      sub: certSession.date ? `${fmtDate(certSession.date)}${certSession.start_time ? ' · ' + fmtTime(certSession.start_time) : ''}` : 'Fecha por confirmar',
+      state: certSession.attended ? 'done' : certSession.unlocked ? 'pending' : 'locked',
+    });
+  }
 
   return (
     <div className="space-y-5">

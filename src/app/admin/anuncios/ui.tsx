@@ -41,7 +41,7 @@ export function AnnouncementForm({ ann, cycles, ministries }: { ann?: any; cycle
         {aud === 'role' && <div><label className="label">Rol</label>
           <select className="input" name="role" defaultValue={ann?.role ?? 'participant'}>
             <option value="participant">Participantes</option><option value="coordinator">Coordinadores</option>
-            <option value="admin">Administradores</option>
+            <option value="pastor">Pastores</option><option value="superadmin">Administradores</option>
           </select></div>}
         <div><label className="label">Prioridad (0–10)</label><input className="input" type="number" name="priority" min={0} max={10} defaultValue={ann?.priority ?? 0} /></div>
       </div>

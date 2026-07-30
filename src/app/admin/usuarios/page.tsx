@@ -7,7 +7,7 @@ export default async function UsuariosPage({ searchParams }: { searchParams: { q
   const { supabase, role } = await requireAdmin();
   const q = (searchParams.q ?? '').trim();
   let query = supabase.from('profiles')
-    .select('id,first_name,last_name,email,phone,account_status,created_at, user_roles(role)')
+    .select('id,first_name,last_name,email,phone,account_status,created_at, user_roles!user_roles_user_id_fkey(role)')
     .order('created_at', { ascending: false }).limit(100);
   if (q) query = query.or(`email.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%,phone.ilike.%${q}%`);
   const { data: users } = await query;

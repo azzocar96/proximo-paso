@@ -40,8 +40,9 @@ export function SpeakersPanel({ steps, speakers }: { steps: number[]; speakers: 
         </div>
         <button className="btn-primary !py-2" disabled={pending || !step || !email}
           onClick={() => start(async () => {
-            setMsg(await assignStepSpeaker(step as number, email, bio, phone));
-            setEmail(''); setBio(''); setPhone(''); setStep('');
+            const res = await assignStepSpeaker(step as number, email, bio, phone);
+            setMsg(res);
+            if (res?.success) { setEmail(''); setBio(''); setPhone(''); setStep(''); }
             router.refresh();
           })}>
           Asignar orador

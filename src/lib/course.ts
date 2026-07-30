@@ -15,7 +15,7 @@ export async function getActiveEnrollment(supabase: SupabaseClient, userId: stri
 
 export type Progress = {
   enrollment_id: string; cycle_id: string; status: string;
-  steps: { step: number; session_id: string; name: string; date: string | null; start_time: string | null; end_time: string | null; attended: boolean; pending: boolean; unlocked: boolean; status: string }[];
+  steps: { step: number; session_id: string; name: string; date: string | null; start_time: string | null; end_time: string | null; attended: boolean; pending: boolean; unlocked: boolean; status: string; is_certification?: boolean }[];
   steps_done: number; test_unlocked: boolean; test_done: boolean;
   dream_team_unlocked: boolean; dream_team_done: boolean; eligible_for_certificate: boolean;
 };

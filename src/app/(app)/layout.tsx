@@ -12,9 +12,13 @@ const NAV = [
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user } = await requireUser();
-  const { data: role } = await supabase.rpc('fn_role');
+  const [{ data: role }, { data: mySpeakerSteps }] = await Promise.all([
+    supabase.rpc('fn_role'),
+    supabase.from('step_speakers').select('step_number').eq('user_id', user.id),
+  ]);
   // Nota (Fase 3a): "admin" quedó inerte — el nivel más alto ahora es pastor/superadmin.
   const isStaff = ['coordinator', 'pastor', 'superadmin'].includes(role as string);
+  const isSpeaker = (mySpeakerSteps ?? []).length > 0;
   return (
     <div className="min-h-screen pb-24 md:pb-0 md:flex">
       <aside className="hidden md:flex md:flex-col w-60 shrink-0 bg-brand-800 text-white min-h-screen p-4 gap-1">
@@ -30,6 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Link href="/curso" className="rounded-xl px-4 py-3 hover:bg-brand-700 font-medium">📚 Mi curso</Link>
         <Link href="/ministerios" className="rounded-xl px-4 py-3 hover:bg-brand-700 font-medium">🤝 Ministerios</Link>
         <Link href="/contacto" className="rounded-xl px-4 py-3 hover:bg-brand-700 font-medium">✉️ Contacto</Link>
+        {isSpeaker && <Link href="/orador" className="rounded-xl px-4 py-3 bg-accent/20 hover:bg-accent/30 font-medium">🎤 Mi paso</Link>}
         {isStaff && <Link href="/admin" className="rounded-xl px-4 py-3 bg-accent/20 hover:bg-accent/30 font-medium">🛠️ Panel admin</Link>}
         <form action={signOut} className="mt-auto">
           <button className="rounded-xl px-4 py-3 hover:bg-brand-700 font-medium w-full text-left">🚪 Cerrar sesión</button>

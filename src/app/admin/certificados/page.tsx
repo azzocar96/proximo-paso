@@ -7,7 +7,7 @@ export const metadata = { title: 'Certificados' };
 export default async function CertificadosPage() {
   const { supabase, role } = await requireAdmin();
   const { data: certs } = await supabase.from('certificates')
-    .select('*, profiles(first_name,last_name,email), enrollments(cycle_id, course_cycles(name))')
+    .select('*, profiles!certificates_user_id_fkey(first_name,last_name,email), enrollments(cycle_id, course_cycles(name))')
     .order('created_at', { ascending: false }).limit(200);
   const s = await getSettings(['certificate_auto_approve']);
   return (

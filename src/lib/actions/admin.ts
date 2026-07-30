@@ -416,7 +416,7 @@ export async function setActiveMember(userId: string, active: boolean): Promise<
     const { supabase } = await requireAdminAction();
     const { error } = await supabase.rpc('set_active_member', { p_user: userId, p_active: active });
     if (error) return { error: error.message };
-    revalidatePath('/admin/participantes');
+    revalidatePath(`/admin/participantes/${userId}`);
     revalidatePath('/admin/usuarios');
     return { success: active ? 'Marcado como miembro activo.' : 'Se quitó miembro activo.' };
   } catch (e) { return { error: (e as Error).message }; }
@@ -432,7 +432,33 @@ export async function cancelAndRescheduleSession(
       p_session: sessionId, p_mode: mode, p_new_date: mode === 'same_week' ? newDate : null, p_reason: reason,
     });
     if (error) return { error: error.message };
+    const { data: sess } = await supabase.from('course_sessions').select('cycle_id').eq('id', sessionId).maybeSingle();
     revalidatePath('/admin/ciclos');
+    if (sess?.cycle_id) revalidatePath(`/admin/ciclos/${sess.cycle_id}`);
     return { success: mode === 'same_week' ? 'Clase reprogramada.' : 'Ciclo corrido una semana.' };
+  } catch (e) { return { error: (e as Error).message }; }
+}
+
+// ---------- sesión de certificación (Fase 3a) ----------
+// Cuando el ciclo cae en un mes de 5 domingos, la entrega de certificados
+// es una 5ª sesión REAL (step_number=5, is_certification=true), con su
+// propia fecha y asistencia. Solo puede existir una por ciclo.
+export async function createCertificationSession(cycleId: string, date: string | null): Promise<FormState> {
+  try {
+    const { supabase } = await requireAdminAction();
+    const { data: existing } = await supabase.from('course_sessions')
+      .select('id').eq('cycle_id', cycleId).eq('is_certification', true).maybeSingle();
+    if (existing) return { error: 'Este ciclo ya tiene una sesión de certificación.' };
+    const { error } = await supabase.from('course_sessions').insert({
+      cycle_id: cycleId, step_number: 5, is_certification: true,
+      name: 'Entrega de certificados', session_date: date || null,
+    });
+    if (error) return { error: error.message };
+    await supabase.rpc('fn_audit', {
+      p_action: 'create_certification_session', p_entity: 'course_sessions',
+      p_id: cycleId, p_reason: null, p_details: null,
+    });
+    revalidatePath(`/admin/ciclos/${cycleId}`);
+    return { success: 'Sesión de certificación creada.' };
   } catch (e) { return { error: (e as Error).message }; }
 }
