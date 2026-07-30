@@ -1,7 +1,8 @@
 'use client';
 import { useState, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { saveSession, assignCoordinator } from '@/lib/actions/admin';
+import { useRouter } from 'next/navigation';
+import { saveSession, assignCoordinator, cancelAndRescheduleSession } from '@/lib/actions/admin';
 import { Alert } from '@/components/ui/Alert';
 import { fmtDate } from '@/lib/utils';
 
@@ -35,6 +36,49 @@ export function SessionForm({ session }: { session: any }) {
       </div>
       <Submit label="Guardar sesión" />
     </form>
+  );
+}
+
+export function RescheduleForm({ session }: { session: any }) {
+  const [mode, setMode] = useState<'same_week' | 'next_week'>('same_week');
+  const [newDate, setNewDate] = useState(session.session_date ?? '');
+  const [reason, setReason] = useState('');
+  const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  const canSubmit = reason.trim().length >= 5 && (mode === 'next_week' || !!newDate);
+  return (
+    <div className="space-y-2 border-t pt-3 mt-3">
+      <p className="text-xs font-semibold text-gray-600">Cancelar / reprogramar esta clase</p>
+      {msg?.error && <Alert kind="error">{msg.error}</Alert>}
+      {msg?.success && <Alert kind="success">{msg.success}</Alert>}
+      <div className="grid md:grid-cols-2 gap-3 text-sm">
+        <div>
+          <label className="label">Modo</label>
+          <select className="input" value={mode} onChange={(e) => setMode(e.target.value as any)}>
+            <option value="same_week">Mover dentro de la misma semana (elegir nueva fecha)</option>
+            <option value="next_week">Correr todo el ciclo restante una semana</option>
+          </select>
+        </div>
+        {mode === 'same_week' && (
+          <div><label className="label">Nueva fecha</label>
+            <input className="input" type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} /></div>
+        )}
+      </div>
+      <div><label className="label">Motivo (obligatorio)</label>
+        <input className="input" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ej: lluvia, feriado, emergencia…" /></div>
+      <button className="btn-secondary !py-2 text-sm" disabled={pending || !canSubmit}
+        onClick={() => start(async () => {
+          const res = await cancelAndRescheduleSession(session.id, mode, mode === 'same_week' ? newDate : null, reason);
+          setMsg(res);
+          if (res?.success) { setReason(''); router.refresh(); }
+        })}>
+        {mode === 'same_week' ? 'Reprogramar esta clase' : 'Correr ciclo una semana'}
+      </button>
+      {mode === 'next_week' && (
+        <p className="text-xs text-amber-700">⚠️ Esto mueve esta sesión y todas las siguientes del ciclo +7 días, y la fecha de certificación si está definida.</p>
+      )}
+    </div>
   );
 }
 

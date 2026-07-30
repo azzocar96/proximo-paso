@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
-export type Role = 'participant' | 'coordinator' | 'admin' | 'superadmin';
+export type Role = 'participant' | 'coordinator' | 'admin' | 'superadmin' | 'pastor';
 
 export async function getSession() {
   const supabase = createClient();
@@ -22,16 +22,20 @@ export async function getRole(): Promise<Role> {
   return (data as Role) ?? 'participant';
 }
 
+// Nota (Fase 3a): "admin" quedó inerte — fn_role() puede seguir devolviendo
+// 'admin' para cuentas legacy, pero ya no da acceso de staff/admin. Su
+// reemplazo es "director de ministerio" (fn_is_ministry_leader/ministry_leaders,
+// ver requireMinistryLeader). El nivel más alto ahora es superadmin o pastor.
 export async function requireStaff() {
   const { supabase, user } = await requireUser();
   const { data: role } = await supabase.rpc('fn_role');
-  if (!['coordinator', 'admin', 'superadmin'].includes(role as string)) redirect('/inicio');
+  if (!['coordinator', 'pastor', 'superadmin'].includes(role as string)) redirect('/inicio');
   return { supabase, user, role: role as Role };
 }
 
 export async function requireAdmin() {
   const { supabase, user, role } = await requireStaff();
-  if (!['admin', 'superadmin'].includes(role)) redirect('/admin');
+  if (!['pastor', 'superadmin'].includes(role)) redirect('/admin');
   return { supabase, user, role };
 }
 

@@ -41,7 +41,7 @@ export default async function MinisteriosAdminPage() {
           Un líder ve, en /liderazgo/segmentacion, únicamente a quienes marcaron interés en el ministerio
           que lidera (Dream Team) — nunca la lista completa. Solo el superadministrador puede asignar o quitar líderes.
         </p>
-        <MinistryLeadersPanel leaders={(leaders as any) ?? []} ministries={(ministries as any) ?? []} canManage={role === 'superadmin'} />
+        <MinistryLeadersPanel leaders={(leaders as any) ?? []} ministries={(ministries as any) ?? []} canManage={role === 'superadmin' || role === 'pastor'} />
       </section>
     </div>
   );

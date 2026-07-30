@@ -5,7 +5,7 @@ import {
   EDUCATION_LEVEL_LABEL, CHURCH_ATTENDANCE_LABEL,
 } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { OverridePanel, SuggestPanel } from './ui';
+import { OverridePanel, SuggestPanel, ActiveMemberToggle } from './ui';
 
 export const metadata = { title: 'Ficha del participante' };
 export default async function FichaPage({ params }: { params: { id: string } }) {
@@ -34,6 +34,13 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
         .eq('user_id', params.id).eq('enrollment_id', active.id)).data
     : [];
   const dt = (dtForms ?? []).find((f) => f.enrollment_id === active?.id) ?? (dtForms ?? [])[0];
+
+  let approvedByName: string | null = null;
+  if (profile.active_member_approved_by) {
+    const { data: approver } = await supabase.from('profiles').select('first_name,last_name')
+      .eq('id', profile.active_member_approved_by).maybeSingle();
+    approvedByName = approver ? `${approver.first_name} ${approver.last_name}` : null;
+  }
 
   return (
     <div className="space-y-5">
@@ -126,6 +133,13 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
         ))}
         {(certs ?? []).length === 0 && <p className="text-gray-500">Sin certificados.</p>}
       </section>
+
+      <ActiveMemberToggle
+        userId={profile.id}
+        active={!!profile.active_member}
+        since={profile.active_member_since}
+        approvedByName={approvedByName}
+      />
 
       {active && <OverridePanel enrollmentId={active.id} />}
     </div>

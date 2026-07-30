@@ -8,7 +8,8 @@ export default async function CiclosPage() {
   const { supabase, role } = await requireStaff();
   const { data: cycles } = await supabase.from('course_cycles').select('*')
     .is('deleted_at', null).order('created_at', { ascending: false });
-  const isAdmin = ['admin', 'superadmin'].includes(role);
+  // Nota (Fase 3a): "admin" quedó inerte — el nivel más alto ahora es pastor/superadmin.
+  const isAdmin = ['pastor', 'superadmin'].includes(role);
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">

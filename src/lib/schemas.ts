@@ -64,7 +64,7 @@ export const announcementSchema = z.object({
   audience: z.enum(['all','cycle','ministry','role','certified']),
   cycle_id: z.string().uuid().optional().or(z.literal('')),
   ministry_id: z.string().uuid().optional().or(z.literal('')),
-  role: z.enum(['participant','coordinator','admin','superadmin']).optional().or(z.literal('')),
+  role: z.enum(['participant','coordinator','admin','superadmin','pastor']).optional().or(z.literal('')),
   publish_at: z.string().optional().or(z.literal('')),
   expires_at: z.string().optional().or(z.literal('')),
   priority: z.coerce.number().int().min(0).max(10).default(0),

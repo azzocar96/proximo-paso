@@ -12,7 +12,7 @@ export default async function ConfigPage() {
         Nombre de la iglesia, curso, marca, contacto, política de privacidad, firmas del certificado y reglas del negocio.
         Las claves críticas solo las cambia el superadministrador.
       </p>
-      <SettingsForm settings={(settings as any) ?? []} isSuper={role === 'superadmin'} />
+      <SettingsForm settings={(settings as any) ?? []} isSuper={role === 'superadmin' || role === 'pastor'} />
     </div>
   );
 }

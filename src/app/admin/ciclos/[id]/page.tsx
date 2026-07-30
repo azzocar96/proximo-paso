@@ -2,14 +2,15 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireStaff } from '@/lib/auth';
 import { CycleForm } from '../form';
-import { SessionForm, CoordinatorForm, SuggestDateNote } from './ui';
+import { SessionForm, CoordinatorForm, SuggestDateNote, RescheduleForm } from './ui';
 import { fmtDate, ENROLLMENT_LABEL } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
 export const metadata = { title: 'Ciclo' };
 export default async function CicloDetailPage({ params }: { params: { id: string } }) {
   const { supabase, role } = await requireStaff();
-  const isAdmin = ['admin', 'superadmin'].includes(role);
+  // Nota (Fase 3a): "admin" quedó inerte — el nivel más alto ahora es pastor/superadmin.
+  const isAdmin = ['pastor', 'superadmin'].includes(role);
   const { data: cycle } = await supabase.from('course_cycles').select('*').eq('id', params.id).maybeSingle();
   if (!cycle) notFound();
   const [{ data: sessions }, { data: enrollments }, { data: coords }, { data: suggested }] = await Promise.all([
@@ -28,7 +29,9 @@ export default async function CicloDetailPage({ params }: { params: { id: string
           {(sessions ?? []).map((s) => (
             <details key={s.id} className="card">
               <summary className="cursor-pointer flex items-center justify-between">
-                <span className="font-semibold">Paso {s.step_number}: {s.name} {s.session_date ? `· ${fmtDate(s.session_date)}` : '· sin fecha'}</span>
+                <span className="font-semibold">
+                  {s.is_certification ? '🎓 Certificación' : `Paso ${s.step_number}`}: {s.name} {s.session_date ? `· ${fmtDate(s.session_date)}` : '· sin fecha'}
+                </span>
                 <span className="flex items-center gap-2">
                   <StatusBadge status={s.status} label={{ scheduled: 'Programada', open: 'Abierta', closed: 'Cerrada', cancelled: 'Cancelada' }[s.status as string]} />
                   <Link href={`/admin/sesiones/${s.id}/qr`} className="btn-secondary !py-1.5 !px-3 text-sm">QR</Link>
@@ -36,6 +39,7 @@ export default async function CicloDetailPage({ params }: { params: { id: string
               </summary>
               <div className="pt-4">
                 <SessionForm session={s} />
+                {isAdmin && <RescheduleForm session={s} />}
               </div>
             </details>
           ))}

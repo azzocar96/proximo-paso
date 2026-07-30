@@ -1,7 +1,40 @@
 'use client';
 import { useState, useTransition } from 'react';
-import { overrideRequirement, suggestAssignment } from '@/lib/actions/admin';
+import { useRouter } from 'next/navigation';
+import { overrideRequirement, suggestAssignment, setActiveMember } from '@/lib/actions/admin';
 import { Alert } from '@/components/ui/Alert';
+import { fmtDate } from '@/lib/utils';
+
+export function ActiveMemberToggle({ userId, active, since, approvedByName }: {
+  userId: string; active: boolean; since: string | null; approvedByName: string | null;
+}) {
+  const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  return (
+    <section className="card space-y-2 text-sm">
+      <h2 className="font-bold">Miembro activo</h2>
+      {msg?.error && <Alert kind="error">{msg.error}</Alert>}
+      {msg?.success && <Alert kind="success">{msg.success}</Alert>}
+      <p>
+        Estado actual: {active ? <span className="badge bg-green-100 text-green-800">Miembro activo</span> : <span className="badge bg-gray-100 text-gray-500">No es miembro activo</span>}
+      </p>
+      {active && since && (
+        <p className="text-xs text-gray-500">
+          Desde: {fmtDate(since)}{approvedByName ? ` · Aprobado por: ${approvedByName}` : ' · Automático (completó el curso)'}
+        </p>
+      )}
+      <p className="text-xs text-gray-500">
+        Un miembro activo ya no ve el curso desde cero y accede de una vez al muro general de la comunidad.
+        Se otorga automáticamente al aprobar el certificado, o manualmente aquí.
+      </p>
+      <button className={active ? 'btn-secondary !py-2' : 'btn-primary !py-2'} disabled={pending}
+        onClick={() => start(async () => { setMsg(await setActiveMember(userId, !active)); router.refresh(); })}>
+        {active ? 'Quitar miembro activo' : 'Marcar como miembro activo'}
+      </button>
+    </section>
+  );
+}
 
 export function OverridePanel({ enrollmentId }: { enrollmentId: string }) {
   const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);

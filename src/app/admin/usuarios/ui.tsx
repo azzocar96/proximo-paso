@@ -4,11 +4,14 @@ import Link from 'next/link';
 import { setRole, setAccountStatus } from '@/lib/actions/admin';
 import { Alert } from '@/components/ui/Alert';
 
+// Nota (Fase 3a): "admin" quedó inerte (sin permisos) — se conserva la
+// etiqueta solo para cuentas legacy que aún tengan ese rol en la base.
 const ROLE_LABEL: Record<string, string> = {
-  participant: 'Participante', coordinator: 'Coordinador', admin: 'Administrador', superadmin: 'Superadmin',
+  participant: 'Participante', coordinator: 'Coordinador', admin: 'Administrador (antiguo, sin acceso)',
+  superadmin: 'Administrador', pastor: 'Pastor',
 };
 function topRole(roles: { role: string }[]): string {
-  const order = ['superadmin', 'admin', 'coordinator', 'participant'];
+  const order = ['superadmin', 'pastor', 'admin', 'coordinator', 'participant'];
   for (const r of order) if (roles.some((x) => x.role === r)) return r;
   return 'participant';
 }
@@ -33,7 +36,8 @@ export function UsersTable({ users, canSetRoles }: { users: any[]; canSetRoles: 
                   {canSetRoles ? (
                     <select className="input !py-1.5 !px-2 text-sm" defaultValue={topRole(u.user_roles ?? [])} disabled={pending}
                       onChange={(e) => start(async () => setMsg(await setRole(u.id, e.target.value)))}>
-                      {Object.entries(ROLE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      {Object.entries(ROLE_LABEL).filter(([k]) => k !== 'admin').map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      {topRole(u.user_roles ?? []) === 'admin' && <option value="admin">{ROLE_LABEL.admin}</option>}
                     </select>
                   ) : ROLE_LABEL[topRole(u.user_roles ?? [])]}
                 </td>

@@ -13,7 +13,8 @@ const NAV = [
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user } = await requireUser();
   const { data: role } = await supabase.rpc('fn_role');
-  const isStaff = ['coordinator', 'admin', 'superadmin'].includes(role as string);
+  // Nota (Fase 3a): "admin" quedó inerte — el nivel más alto ahora es pastor/superadmin.
+  const isStaff = ['coordinator', 'pastor', 'superadmin'].includes(role as string);
   return (
     <div className="min-h-screen pb-24 md:pb-0 md:flex">
       <aside className="hidden md:flex md:flex-col w-60 shrink-0 bg-brand-800 text-white min-h-screen p-4 gap-1">

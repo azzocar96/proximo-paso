@@ -5,17 +5,18 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { FormState } from '@/lib/actions/auth';
 
+// Nota (Fase 3a): "admin" quedó inerte (ver src/lib/auth.ts). Nivel más alto: superadmin o pastor.
 async function requireStaffAction() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Sesión no válida');
   const { data: role } = await supabase.rpc('fn_role');
-  if (!['coordinator', 'admin', 'superadmin'].includes(role as string)) throw new Error('No autorizado');
+  if (!['coordinator', 'pastor', 'superadmin'].includes(role as string)) throw new Error('No autorizado');
   return { supabase, user, role: role as string };
 }
 async function requireAdminAction() {
   const ctx = await requireStaffAction();
-  if (!['admin', 'superadmin'].includes(ctx.role)) throw new Error('No autorizado');
+  if (!['pastor', 'superadmin'].includes(ctx.role)) throw new Error('No autorizado');
   return ctx;
 }
 
@@ -384,5 +385,54 @@ export async function addDreamTeamQuestion(text: string, type: string, optionsCs
     if (error) return { error: 'No pudimos crear la pregunta.' };
     revalidatePath('/admin/dream-team');
     return { success: 'Pregunta creada.' };
+  } catch (e) { return { error: (e as Error).message }; }
+}
+
+// ---------- oradores (Fase 3a) ----------
+export async function assignStepSpeaker(step: number, email: string, bio: string, phone: string): Promise<FormState> {
+  try {
+    const { supabase } = await requireAdminAction();
+    const { data: prof } = await supabase.from('profiles').select('id').eq('email', email.trim().toLowerCase()).maybeSingle();
+    if (!prof) return { error: 'No existe un usuario con ese correo.' };
+    const { error } = await supabase.rpc('assign_step_speaker', { p_step: step, p_user: prof.id, p_bio: bio || null, p_phone: phone || null });
+    if (error) return { error: error.message };
+    revalidatePath('/admin/oradores');
+    return { success: 'Orador asignado.' };
+  } catch (e) { return { error: (e as Error).message }; }
+}
+export async function removeStepSpeaker(step: number): Promise<FormState> {
+  try {
+    const { supabase } = await requireAdminAction();
+    const { error } = await supabase.rpc('remove_step_speaker', { p_step: step });
+    if (error) return { error: error.message };
+    revalidatePath('/admin/oradores');
+    return { success: 'Orador quitado.' };
+  } catch (e) { return { error: (e as Error).message }; }
+}
+
+// ---------- miembro activo (Fase 3a) ----------
+export async function setActiveMember(userId: string, active: boolean): Promise<FormState> {
+  try {
+    const { supabase } = await requireAdminAction();
+    const { error } = await supabase.rpc('set_active_member', { p_user: userId, p_active: active });
+    if (error) return { error: error.message };
+    revalidatePath('/admin/participantes');
+    revalidatePath('/admin/usuarios');
+    return { success: active ? 'Marcado como miembro activo.' : 'Se quitó miembro activo.' };
+  } catch (e) { return { error: (e as Error).message }; }
+}
+
+// ---------- reprogramar/cancelar una clase (Fase 3a) ----------
+export async function cancelAndRescheduleSession(
+  sessionId: string, mode: 'same_week' | 'next_week', newDate: string | null, reason: string
+): Promise<FormState> {
+  try {
+    const { supabase } = await requireAdminAction();
+    const { error } = await supabase.rpc('cancel_and_reschedule_session', {
+      p_session: sessionId, p_mode: mode, p_new_date: mode === 'same_week' ? newDate : null, p_reason: reason,
+    });
+    if (error) return { error: error.message };
+    revalidatePath('/admin/ciclos');
+    return { success: mode === 'same_week' ? 'Clase reprogramada.' : 'Ciclo corrido una semana.' };
   } catch (e) { return { error: (e as Error).message }; }
 }
