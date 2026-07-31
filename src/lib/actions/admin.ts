@@ -208,17 +208,44 @@ export async function saveMinistry(ministryId: string | null, _prev: FormState, 
     const parsed = ministrySchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) return { error: parsed.error.errors[0].message };
     const d = parsed.data;
-    const row = {
-      name: d.name, description: d.description || null, leader_name: d.leader_name || null,
-      leader_contact: d.leader_contact || null, capacity: d.capacity === '' ? null : d.capacity,
-      requirements: d.requirements || null, status: d.status,
+    const showContact = d.show_contact === 'on';
+    // La misma regla que exige la RPC, pero comprobada ANTES de insertar: si no,
+    // al crear un ministerio con la casilla marcada y sin contacto quedaría el
+    // ministerio creado y el mensaje de error, y al reintentar se duplicaría.
+    if (showContact && !(d.leader_contact || d.reference_contact)) {
+      return { error: 'Para publicar el contacto, escribe al menos un teléfono o un correo (el del líder o el de la persona de referencia).' };
+    }
+    // Nombre, estado y capacidad son cosa del administrador; la ficha que ve la
+    // gente (descripción, horario, requisitos y contactos) pasa por el MISMO
+    // RPC que usa el director, para que las reglas y la auditoría sean una sola.
+    const base = {
+      name: d.name, capacity: d.capacity === '' ? null : d.capacity, status: d.status,
     };
-    const q = ministryId
-      ? supabase.from('ministries').update(row).eq('id', ministryId)
-      : supabase.from('ministries').insert(row);
-    const { error } = await q;
-    if (error) return { error: 'No pudimos guardar el ministerio.' };
+    if (!ministryId) {
+      const { data: created, error } = await supabase.from('ministries')
+        .insert({ ...base, description: d.description || null, requirements: d.requirements || null })
+        .select('id').single();
+      if (error || !created) return { error: 'No pudimos crear el ministerio.' };
+      ministryId = created.id;
+    } else {
+      const { error } = await supabase.from('ministries').update(base).eq('id', ministryId);
+      if (error) return { error: 'No pudimos guardar el ministerio.' };
+    }
+    const { error: profErr } = await supabase.rpc('update_ministry_profile', {
+      p_ministry: ministryId,
+      p_description: d.description || '',
+      p_requirements: d.requirements || '',
+      p_meeting_info: d.meeting_info || '',
+      p_leader_name: d.leader_name || '',
+      p_leader_contact: d.leader_contact || '',
+      p_show_contact: showContact,
+      p_reference_name: d.reference_name || '',
+      p_reference_contact: d.reference_contact || '',
+    });
+    if (profErr) return { error: profErr.message };
     revalidatePath('/admin/ministerios');
+    revalidatePath('/ministerios');
+    revalidatePath('/liderazgo');
     return { success: 'Ministerio guardado.' };
   } catch (e) { return { error: (e as Error).message }; }
 }

@@ -25,13 +25,35 @@ export function MinistryForm({ ministry }: { ministry?: any }) {
           </select></div>
       </div>
       <div><label className="label">Descripción</label><textarea className="input" name="description" defaultValue={ministry?.description ?? ''} /></div>
-      <div className="grid grid-cols-2 gap-3">
-        <div><label className="label">Líder</label><input className="input" name="leader_name" defaultValue={ministry?.leader_name ?? ''} /></div>
-        <div><label className="label">Contacto del líder</label><input className="input" name="leader_contact" defaultValue={ministry?.leader_contact ?? ''} /></div>
-      </div>
+      <div><label className="label">Cuándo y dónde se reúnen</label>
+        <input className="input" name="meeting_info" defaultValue={ministry?.meeting_info ?? ''}
+          placeholder="Ej.: ensayamos los jueves a las 7 pm en el salón de música" /></div>
       <div className="grid grid-cols-2 gap-3">
         <div><label className="label">Capacidad</label><input className="input" type="number" name="capacity" defaultValue={ministry?.capacity ?? ''} /></div>
         <div><label className="label">Requisitos</label><input className="input" name="requirements" defaultValue={ministry?.requirements ?? ''} /></div>
+      </div>
+
+      {/* Los mismos campos de contacto que el director maneja desde Mi ministerio.
+          Se guardan por el mismo RPC, así que valen las mismas reglas. */}
+      <div className="rounded-xl border border-gray-200 p-3 space-y-3">
+        <label className="flex items-start gap-2.5">
+          <input type="checkbox" name="show_contact" className="mt-0.5 w-4 h-4"
+            defaultChecked={ministry?.show_contact === true} />
+          <span>
+            <b>Publicar un contacto en el catálogo</b>
+            <span className="block text-xs text-gray-500">
+              Normalmente lo decide el director desde Mi ministerio. Si está apagado, nadie ve teléfonos ni correos.
+            </span>
+          </span>
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className="label">A quién escribir</label><input className="input" name="leader_name" defaultValue={ministry?.leader_name ?? ''} /></div>
+          <div><label className="label">Teléfono o correo</label><input className="input" name="leader_contact" defaultValue={ministry?.leader_contact ?? ''} /></div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className="label">Persona de referencia</label><input className="input" name="reference_name" defaultValue={ministry?.reference_name ?? ''} /></div>
+          <div><label className="label">Su teléfono o correo</label><input className="input" name="reference_contact" defaultValue={ministry?.reference_contact ?? ''} /></div>
+        </div>
       </div>
       <Submit />
     </form>

@@ -96,10 +96,16 @@ export const announcementSchema = z.object({
 
 export const ministrySchema = z.object({
   name: z.string().trim().min(2).max(120),
-  description: z.string().trim().max(2000).optional().or(z.literal('')),
-  leader_name: z.string().trim().max(120).optional().or(z.literal('')),
+  description: z.string().trim().max(1000, 'La descripción no puede pasar de 1000 caracteres').optional().or(z.literal('')),
+  leader_name: z.string().trim().max(160).optional().or(z.literal('')),
   leader_contact: z.string().trim().max(160).optional().or(z.literal('')),
   capacity: z.coerce.number().int().positive().optional().or(z.literal('')),
-  requirements: z.string().trim().max(1000).optional().or(z.literal('')),
+  requirements: z.string().trim().max(500, 'Los requisitos no pueden pasar de 500 caracteres').optional().or(z.literal('')),
   status: z.enum(['active','inactive']).default('active'),
+  // Fase 3e: los mismos campos que maneja el director desde Mi ministerio,
+  // para que el administrador vea y arregle exactamente lo mismo.
+  meeting_info: z.string().trim().max(300).optional().or(z.literal('')),
+  reference_name: z.string().trim().max(160).optional().or(z.literal('')),
+  reference_contact: z.string().trim().max(160).optional().or(z.literal('')),
+  show_contact: z.union([z.literal('on'), z.literal('')]).optional(),
 });
