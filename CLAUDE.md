@@ -12,3 +12,7 @@ carpeta para el estado técnico actual.
 Ver mapa completo en `_MEMORIA\00-GLOBAL.md`. Este proyecto es mantenido y optimizado
 **activamente** por **Agente Desarrollador de IA** (`Projects\Agente Desarrollador de IA`) —
 cualquier mejora o mantenimiento técnico de este proyecto pasa por ese departamento.
+
+## Aprendizaje cruzado (regla 29-jul-2026, ver 00-GLOBAL.md)
+Proyecto sin fines de lucro: no aplica aprendizaje comercial. Las lecciones técnicas van a la
+Bitácora de `_MEMORIA\app-iglesia.md` y al aprendizaje del Agente Desarrollador de IA.

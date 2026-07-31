@@ -7,19 +7,25 @@ import { signOut } from '@/lib/actions/auth';
 export const metadata = { title: 'Mi perfil' };
 export default async function PerfilPage() {
   const { supabase, user } = await requireUser();
-  const [{ data: profile }, { data: role }, { data: mySpeakerSteps }, { data: myLedMinistries }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
-    supabase.rpc('fn_role'),
-    supabase.from('step_speakers').select('step_number').eq('user_id', user.id),
-    supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
-  ]);
+  const [{ data: profile }, { data: role }, { data: mySpeakerSteps }, { data: myLedMinistries }, { data: nav, error: navError }] =
+    await Promise.all([
+      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.rpc('fn_role'),
+      supabase.from('step_speakers').select('step_number').eq('user_id', user.id),
+      supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
+      supabase.rpc('fn_my_nav'),
+    ]);
   const isStaff = ['coordinator', 'pastor', 'superadmin'].includes(role as string);
   const isSpeaker = (mySpeakerSteps ?? []).length > 0;
+  // Mismo criterio y misma tolerancia a fallos que el menú lateral (migración 013).
+  const navFailed = Boolean(navError);
+  const canSeeMinistries = navFailed || (nav as any)?.can_ministries === true;
+  const canSeeWall = navFailed || (nav as any)?.can_wall === true;
   const quickLinks = [
     { href: '/curso', label: 'Mi curso', Icon: BookOpen },
-    { href: '/ministerios', label: 'Ministerios', Icon: HeartHandshake },
+    ...(canSeeMinistries ? [{ href: '/ministerios', label: 'Ministerios', Icon: HeartHandshake }] : []),
     { href: '/contacto', label: 'Contacto', Icon: Mail },
-    { href: '/muro', label: 'Muro', Icon: Newspaper },
+    ...(canSeeWall ? [{ href: '/muro', label: 'Muro', Icon: Newspaper }] : []),
     ...((myLedMinistries ?? []).length > 0 || ['pastor', 'superadmin'].includes(role as string)
       ? [{ href: '/liderazgo', label: 'Mi ministerio (director)', Icon: Users }] : []),
     ...(isSpeaker ? [{ href: '/orador', label: 'Mi paso (orador)', Icon: Mic }] : []),

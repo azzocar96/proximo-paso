@@ -16,15 +16,26 @@ const NAV = [
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user } = await requireUser();
-  const [{ data: role }, { data: mySpeakerSteps }, { data: myLedMinistries }] = await Promise.all([
-    supabase.rpc('fn_role'),
-    supabase.from('step_speakers').select('step_number').eq('user_id', user.id),
-    supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
-  ]);
+  const [{ data: role }, { data: mySpeakerSteps }, { data: myLedMinistries }, { data: nav, error: navError }] =
+    await Promise.all([
+      supabase.rpc('fn_role'),
+      supabase.from('step_speakers').select('step_number').eq('user_id', user.id),
+      supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
+      supabase.rpc('fn_my_nav'),
+    ]);
   // Nota (Fase 3a): "admin" quedó inerte — el nivel más alto ahora es pastor/superadmin.
   const isStaff = ['coordinator', 'pastor', 'superadmin'].includes(role as string);
   const isSpeaker = (mySpeakerSteps ?? []).length > 0;
   const isLeader = (myLedMinistries ?? []).length > 0 || ['pastor', 'superadmin'].includes(role as string);
+  // Regla de negocio (migración 013): ministerios y muros se abren al completar el
+  // curso; quien está en proceso solo ve lo relativo a su proceso. El criterio vive
+  // en fn_my_nav para que menú, perfil y páginas nunca se contradigan.
+  // Si la RPC falla (por ejemplo si el front se despliega antes que la migración),
+  // mostramos los enlaces: enseñar de más es recuperable, esconder de más deja a la
+  // gente sin app y en silencio — la lección del incidente de permisos (migración 010).
+  const navFailed = Boolean(navError);
+  const canSeeMinistries = navFailed || (nav as any)?.can_ministries === true;
+  const canSeeWall = navFailed || (nav as any)?.can_wall === true;
   return (
     <div className="min-h-screen pb-24 md:pb-0 md:flex">
       <aside className="hidden md:flex md:flex-col w-64 shrink-0 bg-white border-r border-gray-200 min-h-screen p-4 gap-0.5">
@@ -38,8 +49,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </Link>
         ))}
         <Link href="/curso" className="nav-item"><BookOpen className="nav-item-icon" aria-hidden /> Mi curso</Link>
-        <Link href="/ministerios" className="nav-item"><HeartHandshake className="nav-item-icon" aria-hidden /> Ministerios</Link>
-        <Link href="/muro" className="nav-item"><Newspaper className="nav-item-icon" aria-hidden /> Muro</Link>
+        {canSeeMinistries && (
+          <Link href="/ministerios" className="nav-item"><HeartHandshake className="nav-item-icon" aria-hidden /> Ministerios</Link>
+        )}
+        {canSeeWall && (
+          <Link href="/muro" className="nav-item"><Newspaper className="nav-item-icon" aria-hidden /> Muro</Link>
+        )}
         <Link href="/contacto" className="nav-item"><Mail className="nav-item-icon" aria-hidden /> Contacto</Link>
         {(isSpeaker || isStaff || isLeader) && <div className="my-2 border-t border-gray-100" />}
         {isLeader && (

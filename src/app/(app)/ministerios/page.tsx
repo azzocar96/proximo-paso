@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { HeartHandshake, Users } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { MINISTRY_ASSIGN_LABEL, MEMBER_REQUEST_KIND_LABEL, fmtDate } from '@/lib/utils';
@@ -7,6 +8,32 @@ import { JoinRequestPanel, SelfServicePanel, PendingRequestCard } from './ui';
 export const metadata = { title: 'Ministerios' };
 export default async function MinisteriosPage() {
   const { supabase, user } = await requireUser();
+  // Regla de negocio (migración 013): los ministerios se abren al completar el curso.
+  // El criterio es el mismo que usa el menú (fn_my_nav), para que nunca haya un
+  // enlace que lleve a "no disponible" ni una sección oculta que sí funcione.
+  // El enlace ya no aparece para quien está en proceso; esto cubre además que llegue
+  // escribiendo la dirección a mano. Si la RPC falla, no bloqueamos.
+  const { data: nav, error: navError } = await supabase.rpc('fn_my_nav');
+  const canSee = Boolean(navError) || (nav as any)?.can_ministries === true;
+  const isActiveMember = Boolean(navError) || (nav as any)?.is_active_member === true;
+
+  if (!canSee) {
+    return (
+      <div className="space-y-5">
+        <h1 className="text-2xl font-extrabold">Ministerios</h1>
+        <section className="card text-center py-10 space-y-3">
+          <HeartHandshake className="w-10 h-10 mx-auto text-gray-300" aria-hidden />
+          <p className="font-semibold">Los ministerios se abren al completar el curso</p>
+          <p className="text-sm text-gray-500 max-w-sm mx-auto">
+            Termina tus cuatro pasos y recibe tu certificado. Al hacerlo quedas como miembro
+            activo y podrás postularte hasta a tres equipos en orden de preferencia.
+          </p>
+          <Link href="/progreso" className="btn-primary !py-2 !px-4 text-sm inline-block">Ver mi progreso</Link>
+        </section>
+      </div>
+    );
+  }
+
   const [{ data: ministries }, { data: mine }, { data: myRequests }, { data: resolved }] = await Promise.all([
     supabase.from('ministries').select('*').eq('status', 'active').is('deleted_at', null).order('name'),
     supabase.from('ministry_assignments').select('ministry_id,status, ministries(name)').eq('user_id', user.id),
@@ -55,7 +82,9 @@ export default async function MinisteriosPage() {
         </section>
       ))}
 
-      {!current && !pendingKinds.has('join') && (
+      {/* Postularse exige ser miembro activo (013). Un director o un admin puede
+          entrar aquí sin serlo: ve el catálogo, pero no el panel de postulación. */}
+      {isActiveMember && !current && !pendingKinds.has('join') && (
         <JoinRequestPanel ministries={activeMinistries} />
       )}
 

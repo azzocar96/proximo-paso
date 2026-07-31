@@ -100,5 +100,8 @@ export async function removeMinistryMember(ministryId: string, userId: string, r
 
 function friendly(error: { code?: string; message: string }): string {
   if (error.code === '23505') return 'Ya tienes una solicitud pendiente de este tipo. Cancélala primero si quieres cambiarla.';
+  // 42501 = la política de seguridad rechazó la fila. Con las reglas de la 013 esto
+  // ocurre cuando alguien pide algo reservado a quienes ya completaron el curso.
+  if (error.code === '42501') return 'Esta solicitud está reservada a quienes ya completaron el curso y forman parte de un ministerio.';
   return error.message;
 }
