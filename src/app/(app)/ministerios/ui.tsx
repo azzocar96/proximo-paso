@@ -21,10 +21,12 @@ export function JoinRequestPanel({ ministries }: { ministries: Ministry[] }) {
   return (
     <section className="card space-y-3">
       <div>
-        <h2 className="font-bold">Únete a un ministerio</h2>
+        <h2 className="font-bold">¿Quieres servir en un ministerio?</h2>
         <p className="text-xs text-gray-500">
-          Elige hasta 3 en orden de preferencia. Tu solicitud les llega a los directores de todos
-          los que elijas a la vez, y el primero que te acepte te suma a su equipo.
+          Es opcional: puedes ser parte de la comunidad sin pertenecer a ningún equipo, y decidirlo
+          más adelante cuando quieras. Si te animas, elige hasta 3 en orden de preferencia. Tu
+          solicitud les llega a los directores de todos los que elijas a la vez, y el primero que
+          te acepte te suma a su equipo.
         </p>
       </div>
       {msg?.error && <Alert kind="error">{msg.error}</Alert>}

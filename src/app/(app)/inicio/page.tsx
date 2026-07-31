@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ScanLine, CalendarDays, BookOpen, Megaphone, CheckCircle2, CircleDot, Lock, ArrowRight } from 'lucide-react';
+import { ScanLine, CalendarDays, BookOpen, Megaphone, CheckCircle2, CircleDot, Lock, ArrowRight, HeartHandshake } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getActiveEnrollment, getProgress, progressPercent, nextActivity } from '@/lib/course';
 import { fmtDate, fmtTime, ENROLLMENT_LABEL } from '@/lib/utils';
@@ -8,7 +8,15 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 export const metadata = { title: 'Inicio' };
 export default async function InicioPage() {
   const { supabase, user } = await requireUser();
-  const { data: profile } = await supabase.from('profiles').select('first_name').eq('id', user.id).single();
+  const { data: profile } = await supabase.from('profiles').select('first_name,active_member').eq('id', user.id).single();
+  // Invitación (no obligación) a servir: solo para el miembro activo que todavía
+  // no está en ningún equipo y no tiene una solicitud en curso. Servir es opcional.
+  const { data: myMinistry } = await supabase.from('ministry_assignments')
+    .select('id').eq('user_id', user.id).in('status', ['assigned', 'active']);
+  const { data: myPending } = await supabase.from('member_requests')
+    .select('id').eq('user_id', user.id).eq('status', 'pending');
+  const invitarAServir = Boolean(profile?.active_member)
+    && (myMinistry ?? []).length === 0 && (myPending ?? []).length === 0;
   const enrollment = await getActiveEnrollment(supabase, user.id);
   const progress = enrollment ? await getProgress(supabase, enrollment.id) : null;
   const { data: ann } = await supabase.from('announcements').select('id,title,content,publish_at')
@@ -24,6 +32,22 @@ export default async function InicioPage() {
         <h1 className="text-2xl font-extrabold">Hola, {profile?.first_name || 'bienvenido'}</h1>
         <p className="text-sm text-gray-500">Qué bueno verte por aquí.</p>
       </div>
+
+      {invitarAServir && (
+        <section className="card space-y-2 border-brand-200/60 bg-brand-50/40">
+          <p className="font-semibold inline-flex items-center gap-2">
+            <HeartHandshake className="w-4 h-4 text-brand-600" aria-hidden /> Ya eres parte de la comunidad
+          </p>
+          <p className="text-sm text-gray-600">
+            Si en algún momento quieres servir en un ministerio, puedes postularte cuando gustes. No
+            hace falta pertenecer a un equipo para seguir aquí: el muro y la vida de la iglesia son
+            tuyos igual.
+          </p>
+          <Link href="/ministerios" className="text-sm font-semibold text-brand-700 inline-flex items-center gap-1">
+            Ver los ministerios <ArrowRight className="w-3.5 h-3.5" aria-hidden />
+          </Link>
+        </section>
+      )}
 
       {sessionToday && (
         <Link href="/escanear" className="card card-hover relative overflow-hidden flex items-center justify-between !border-transparent bg-gradient-to-r from-brand-600 to-brand-500 text-white">
