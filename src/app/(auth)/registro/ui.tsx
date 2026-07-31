@@ -31,6 +31,7 @@ function ageFrom(iso: string): number | null {
 export function RegistroForm({ minAge, allowMinors }: { minAge: number; allowMinors: boolean }) {
   const [state, action] = useFormState(signUp, null);
   const [birth, setBirth] = useState('');
+  const [alreadyMember, setAlreadyMember] = useState(false);
 
   const age = ageFrom(birth);
   const invalidDate = birth.length === 10 && age === null;
@@ -99,6 +100,30 @@ export function RegistroForm({ minAge, allowMinors }: { minAge: number; allowMin
         <input className="input" id="email" name="email" type="email" autoComplete="email" required /></div>
       <div><label className="label" htmlFor="password">Contraseña * (mínimo 8 caracteres)</label>
         <input className="input" id="password" name="password" type="password" minLength={8} autoComplete="new-password" required /></div>
+      {/* Fase 3f: levantar la mano. Marcarlo NO da acceso a nada todavía —
+          queda pendiente de que un director o el administrador lo confirmen.
+          Los campos se ocultan con CSS, nunca se desmontan: si se desmontan no
+          llegan en el FormData (lección de la auditoría de la fase 3e). */}
+      <section className="rounded-xl border border-gray-200 p-3 space-y-3">
+        <label className="flex items-start gap-3 text-sm">
+          <input type="checkbox" name="already_member" className="mt-1 w-5 h-5"
+            checked={alreadyMember} onChange={(e) => setAlreadyMember(e.target.checked)} />
+          <span>
+            <b>Ya hice el curso y soy parte activa de la iglesia</b>
+            <span className="block text-xs text-gray-500 mt-0.5">
+              Márcalo solo si ya completaste los cuatro pasos antes de que existiera esta app. Un director o el
+              equipo pastoral lo confirmará; mientras tanto usarás la app como todos los demás.
+            </span>
+          </span>
+        </label>
+        <div className={alreadyMember ? '' : 'hidden'}>
+          <label className="label" htmlFor="member_note">¿Cuándo y con quién lo hiciste? (opcional)</label>
+          <input className="input" id="member_note" name="member_note" maxLength={500}
+            placeholder="Ej.: en 2019, con el pastor Luis" />
+          <p className="text-xs text-gray-500 mt-1">Ayuda a quien lo revise a reconocerte más rápido.</p>
+        </div>
+      </section>
+
       <label className="flex items-start gap-3 text-sm">
         <input type="checkbox" name="privacy_consent" className="mt-1 w-5 h-5" required />
         <span>Acepto la <Link href="/privacidad" target="_blank" className="text-brand-600 underline">política de privacidad</Link> y el uso de mis datos para el curso. *</span>

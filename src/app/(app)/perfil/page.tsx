@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { User, Users, BookOpen, HeartHandshake, Mail, Mic, Wrench, ChevronRight, Newspaper } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
-import { ProfileForm, AvatarForm } from './ui';
+import { ProfileForm, AvatarForm, ActiveMemberCard, SecurityCard } from './ui';
 import { signOut } from '@/lib/actions/auth';
 
 export const metadata = { title: 'Mi perfil' };
@@ -54,7 +54,10 @@ export default async function PerfilPage() {
         ))}
       </section>
       <AvatarForm />
+      <ActiveMemberCard profile={profile} />
       <ProfileForm profile={profile} />
+      {/* El correo sale de Auth: es con el que de verdad se entra. */}
+      <SecurityCard email={user.email ?? ''} />
       <form action={signOut} className="md:hidden">
         <button className="btn-secondary w-full">Cerrar sesión</button>
       </form>

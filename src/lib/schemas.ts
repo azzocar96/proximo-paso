@@ -20,6 +20,10 @@ export const registerSchema = z.object({
   guardian_name: z.string().trim().max(120).optional().or(z.literal('')),
   guardian_contact: z.string().trim().max(120).optional().or(z.literal('')),
   guardian_consent: z.boolean().optional(),
+  // Fase 3f: "ya hice el curso, ya soy miembro". Es una SOLICITUD, no un
+  // permiso: queda pendiente hasta que un director o el administrador la vean.
+  already_member: z.boolean().optional(),
+  member_note: z.string().trim().max(500, 'La nota no puede pasar de 500 caracteres').optional().or(z.literal('')),
 });
 
 export const profileSchema = z.object({

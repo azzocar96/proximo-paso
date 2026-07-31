@@ -3,6 +3,7 @@ import { Inbox, Users, Filter } from 'lucide-react';
 import { requireMinistryLeader } from '@/lib/auth';
 import { fmtDate, MEMBER_REQUEST_KIND_LABEL } from '@/lib/utils';
 import { JoinRequestRow, OtherRequestRow, MemberRow, MinistryProfileCard, AddMemberCard } from './ui';
+import { ActiveMemberRequests } from '@/components/ActiveMemberRequests';
 
 export const metadata = { title: 'Mi ministerio' };
 
@@ -27,13 +28,16 @@ export default async function LiderazgoPage() {
   const myIds = (myMinistries ?? []).map((m: any) => m.ministry_id);
   const nameOf = new Map((myMinistries ?? []).map((m: any) => [m.ministry_id, m.ministries?.name]));
 
-  const [{ data: requests }, { data: members }] = await Promise.all([
+  const [{ data: requests }, { data: members }, { data: activeReqs, error: activeReqsError }] = await Promise.all([
     supabase.from('member_requests')
       .select('*, profiles!member_requests_user_id_fkey(first_name,last_name,email), ministries:target_ministry_id(name)')
       .eq('status', 'pending').order('created_at'),
     supabase.from('ministry_assignments')
       .select('id,ministry_id,user_id,status,created_at, profiles!ministry_assignments_user_id_fkey(first_name,last_name,email), ministries(name)')
       .in('ministry_id', myIds).in('status', ['assigned', 'active']).order('created_at'),
+    // Fase 3f: quien dirige un ministerio también confirma a los que dicen que
+    // ya hicieron el curso. La RPC devuelve [] si quien mira no tiene ese papel.
+    supabase.rpc('get_active_member_requests'),
   ]);
 
   const joins = (requests ?? []).filter((r: any) =>
@@ -49,6 +53,8 @@ export default async function LiderazgoPage() {
           Diriges: <b>{myIds.map((id) => nameOf.get(id)).filter(Boolean).join(', ') || '—'}</b>
         </p>
       </div>
+
+      <ActiveMemberRequests requests={((activeReqs as any[]) ?? []) as any} loadError={activeReqsError?.message ?? null} />
 
       <section className="card space-y-3">
         <h2 className="font-bold inline-flex items-center gap-2">

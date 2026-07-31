@@ -1,5 +1,5 @@
 'use server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createVerifyClient } from '@/lib/supabase/server';
 import { registerSchema } from '@/lib/schemas';
 import { redirect } from 'next/navigation';
 
@@ -31,6 +31,8 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
     guardian_name: formData.get('guardian_name') ?? '',
     guardian_contact: formData.get('guardian_contact') ?? '',
     guardian_consent: formData.get('guardian_consent') === 'on' ? true : false,
+    already_member: formData.get('already_member') === 'on' ? true : false,
+    member_note: formData.get('member_note') ?? '',
   });
   if (!parsed.success) return { error: parsed.error.errors[0].message };
   const d = parsed.data;
@@ -72,6 +74,10 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
         guardian_name: d.guardian_name || null,
         guardian_contact: d.guardian_contact || null,
         guardian_consent: d.guardian_consent ?? null,
+        // Marcar esto NO hace a nadie miembro activo: deja la mano levantada
+        // para que un director, el pastor o el administrador lo confirmen.
+        already_member: d.already_member ?? false,
+        member_note: d.member_note || null,
       },
     },
   });
@@ -106,6 +112,84 @@ export async function updatePassword(_prev: FormState, formData: FormData): Prom
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { error: 'No pudimos actualizar la contraseña. El enlace pudo haber vencido.' };
   redirect('/inicio');
+}
+
+/**
+ * Comprueba la contraseña actual sin tocar la sesión.
+ * Devuelve el mensaje de error si algo va mal, o null si la contraseña es
+ * correcta. Distingue el límite de intentos: decirle "contraseña incorrecta" a
+ * quien la escribió bien es la peor respuesta posible.
+ */
+async function verifyPassword(email: string, password: string): Promise<string | null> {
+  const { error } = await createVerifyClient().auth.signInWithPassword({ email, password });
+  if (!error) return null;
+  if ((error as any).status === 429) return 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.';
+  if (error.message.toLowerCase().includes('invalid login')) return 'La contraseña actual no es correcta.';
+  return 'No pudimos verificar tu contraseña ahora mismo. Intenta de nuevo en un minuto.';
+}
+
+/**
+ * Cambiar la contraseña con la sesión abierta.
+ * Se pide la actual aunque la sesión ya pruebe quién eres: si alguien deja el
+ * teléfono desbloqueado sobre la mesa, esto es lo único que separa un descuido
+ * de perder la cuenta. La comprobación se hace contra Supabase, nunca contra
+ * un valor guardado por nosotros.
+ */
+export async function changePassword(_prev: FormState, formData: FormData): Promise<FormState> {
+  const current = String(formData.get('current_password') ?? '');
+  const password = String(formData.get('password') ?? '');
+  const confirm = String(formData.get('confirm') ?? '');
+  if (!current) return { error: 'Escribe tu contraseña actual.' };
+  if (password.length < 8) return { error: 'La contraseña nueva debe tener al menos 8 caracteres.' };
+  if (password.length > 72) return { error: 'La contraseña nueva es demasiado larga.' };
+  if (password !== confirm) return { error: 'Las dos contraseñas nuevas no coinciden.' };
+  if (password === current) return { error: 'La contraseña nueva tiene que ser distinta de la actual.' };
+
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.email) return { error: 'Sesión no válida. Vuelve a iniciar sesión.' };
+
+  const bad = await verifyPassword(user.email, current);
+  if (bad) return { error: bad };
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: 'No pudimos cambiar la contraseña. Intenta de nuevo.' };
+  return { success: 'Contraseña actualizada. La próxima vez entra con la nueva.' };
+}
+
+/**
+ * Cambiar el correo de la cuenta. Supabase manda un enlace de confirmación a
+ * la dirección nueva (y, según la configuración del proyecto, también a la
+ * vieja): hasta que se abra ese enlace, el correo de entrada sigue siendo el
+ * de siempre. Cuando se confirma, el trigger t_auth_email_sync (migración 017)
+ * lo copia al perfil para que no queden dos correos distintos.
+ */
+export async function changeEmail(_prev: FormState, formData: FormData): Promise<FormState> {
+  const email = String(formData.get('email') ?? '').trim().toLowerCase();
+  const current = String(formData.get('current_password') ?? '');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: 'Escribe un correo válido.' };
+  if (!current) return { error: 'Escribe tu contraseña actual para confirmar el cambio.' };
+
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.email) return { error: 'Sesión no válida. Vuelve a iniciar sesión.' };
+  if (user.email.toLowerCase() === email) return { error: 'Ese ya es tu correo actual.' };
+
+  const bad = await verifyPassword(user.email, current);
+  if (bad) return { error: bad };
+
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const { error } = await supabase.auth.updateUser({ email }, { emailRedirectTo: `${site}/auth/callback?next=/perfil` });
+  const ok = `Si ese correo está libre, te enviamos un enlace a ${email}. Ábrelo desde ahí para confirmar el cambio; hasta entonces sigues entrando con el actual.`;
+  if (error) {
+    // Mismo mensaje aunque el correo ya tenga cuenta: si no, cualquiera con
+    // sesión podría ir probando direcciones para saber quién está registrado.
+    if (error.message.toLowerCase().includes('already') || error.message.toLowerCase().includes('registered')) {
+      return { success: ok };
+    }
+    return { error: 'No pudimos cambiar el correo. Intenta de nuevo.' };
+  }
+  return { success: ok };
 }
 
 /**

@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/auth';
 import { UsersTable, RoleChangeRequests } from './ui';
+import { ActiveMemberRequests } from '@/components/ActiveMemberRequests';
 import { fmtDate } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -18,6 +19,8 @@ export default async function UsuariosPage({ searchParams }: { searchParams: { q
   // Fase 3c: quiénes tienen permiso puntual de publicar en el muro general
   const { data: publisherRows, error: publishersError } = await supabase.from('wall_publishers').select('user_id');
   const publishers = (publisherRows ?? []).map((r: { user_id: string }) => r.user_id);
+  // Fase 3f: los que dicen que ya hicieron el curso antes de existir la app.
+  const { data: activeReqs, error: activeReqsError } = await supabase.rpc('get_active_member_requests');
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Usuarios</h1>
@@ -30,6 +33,7 @@ export default async function UsuariosPage({ searchParams }: { searchParams: { q
           No se pudo leer quién puede publicar en el muro: {publishersError.message}
         </p>
       )}
+      <ActiveMemberRequests requests={((activeReqs as any[]) ?? []) as any} loadError={activeReqsError?.message ?? null} />
       {(roleRequests ?? []).length > 0 && (
         <RoleChangeRequests requests={(roleRequests as any[]).map((r) => ({ ...r, since: fmtDate(r.created_at) }))} />
       )}
