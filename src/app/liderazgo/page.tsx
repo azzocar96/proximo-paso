@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Inbox, Users, Filter } from 'lucide-react';
 import { requireMinistryLeader } from '@/lib/auth';
 import { fmtDate, MEMBER_REQUEST_KIND_LABEL } from '@/lib/utils';
-import { JoinRequestRow, OtherRequestRow, MemberRow } from './ui';
+import { JoinRequestRow, OtherRequestRow, MemberRow, MinistryProfileCard, AddMemberCard } from './ui';
 
 export const metadata = { title: 'Mi ministerio' };
 
@@ -18,10 +18,10 @@ export default async function LiderazgoPage() {
   const { data: myRole } = await supabase.rpc('fn_role');
   const isAdminTier = ['pastor', 'superadmin'].includes(myRole as string);
   let { data: myMinistries } = await supabase.from('ministry_leaders')
-    .select('ministry_id, ministries(id,name)').eq('user_id', user.id);
+    .select('ministry_id, ministries(id,name,description,requirements,meeting_info,show_contact,leader_name,leader_contact,reference_name,reference_contact)').eq('user_id', user.id).order('ministry_id');
   // Un admin/pastor pasa requireMinistryLeader sin filas propias: ve todos.
   if (!myMinistries || myMinistries.length === 0) {
-    const { data: all } = await supabase.from('ministries').select('id,name').eq('status', 'active').is('deleted_at', null);
+    const { data: all } = await supabase.from('ministries').select('id,name,description,requirements,meeting_info,show_contact,leader_name,leader_contact,reference_name,reference_contact').eq('status', 'active').is('deleted_at', null).order('name');
     myMinistries = (all ?? []).map((m: any) => ({ ministry_id: m.id, ministries: m })) as any;
   }
   const myIds = (myMinistries ?? []).map((m: any) => m.ministry_id);
@@ -86,6 +86,14 @@ export default async function LiderazgoPage() {
           {others.length === 0 && <li className="py-2 text-sm text-gray-500">No hay bajas ni cambios pendientes.</li>}
         </ul>
       </section>
+
+      <AddMemberCard ministries={(myMinistries ?? []).map((m: any) => ({ id: m.ministry_id, name: m.ministries?.name ?? '' }))} />
+
+      <div className="space-y-3">
+        {(myMinistries ?? []).map((m: any) => (
+          m.ministries ? <MinistryProfileCard key={m.ministry_id} ministry={m.ministries} /> : null
+        ))}
+      </div>
 
       <section className="card space-y-3">
         <h2 className="font-bold inline-flex items-center gap-2">

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { HeartHandshake, Users } from 'lucide-react';
+import { HeartHandshake, Users, CalendarClock, Phone } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { MINISTRY_ASSIGN_LABEL, MEMBER_REQUEST_KIND_LABEL, fmtDate } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -35,7 +35,9 @@ export default async function MinisteriosPage() {
   }
 
   const [{ data: ministries }, { data: mine }, { data: myRequests }, { data: resolved }] = await Promise.all([
-    supabase.from('ministries').select('*').eq('status', 'active').is('deleted_at', null).order('name'),
+    // Vía RPC: devuelve los contactos en null cuando su director no los publicó,
+    // así lo privado no viaja al navegador ni aunque alguien mire el código.
+    supabase.rpc('get_ministries_catalog'),
     supabase.from('ministry_assignments').select('ministry_id,status, ministries(name)').eq('user_id', user.id),
     supabase.from('member_requests').select('*, ministries:target_ministry_id(name)')
       .eq('user_id', user.id).eq('status', 'pending').order('created_at'),
@@ -46,7 +48,7 @@ export default async function MinisteriosPage() {
   const current = (mine ?? []).find((m) => ['assigned', 'active'].includes(m.status));
   const mineMap = new Map((mine ?? []).map((m) => [m.ministry_id, m.status]));
   const pendingKinds = new Set((myRequests ?? []).map((r) => r.kind));
-  const activeMinistries = (ministries ?? []).map((m) => ({ id: m.id, name: m.name }));
+  const activeMinistries = ((ministries as any[]) ?? []).map((m: any) => ({ id: m.id, name: m.name }));
 
   return (
     <div className="space-y-5">
@@ -98,7 +100,7 @@ export default async function MinisteriosPage() {
       )}
 
       <h2 className="text-lg font-bold pt-2">Conoce los equipos</h2>
-      {(ministries ?? []).map((m) => (
+      {((ministries as any[]) ?? []).map((m: any) => (
         <section key={m.id} className="card space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -110,10 +112,32 @@ export default async function MinisteriosPage() {
             {mineMap.has(m.id) && <StatusBadge status={mineMap.get(m.id)!} label={MINISTRY_ASSIGN_LABEL[mineMap.get(m.id)!]} />}
           </div>
           {m.description && <p className="text-sm text-gray-600">{m.description}</p>}
+          {m.meeting_info && (
+            <p className="text-xs text-gray-600 inline-flex items-center gap-1.5">
+              <CalendarClock className="w-3.5 h-3.5 text-brand-600 shrink-0" aria-hidden /> {m.meeting_info}
+            </p>
+          )}
           {m.requirements && <p className="text-xs text-amber-700">Requisitos: {m.requirements}</p>}
+          {/* Si su director no publicó el contacto, el RPC ya devuelve null: aquí
+              no hay nada que ocultar porque el dato nunca llegó (migración 016). */}
+          {(m.leader_contact || m.reference_contact) && (
+            <div className="pt-1.5 border-t border-gray-100 text-xs text-gray-600 space-y-0.5">
+              {m.leader_contact && (
+                <p className="inline-flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-brand-600 shrink-0" aria-hidden />
+                  {m.leader_name ? `${m.leader_name}: ` : ''}{m.leader_contact}
+                </p>
+              )}
+              {m.reference_contact && (
+                <p className="block">
+                  {m.reference_name ? `${m.reference_name}: ` : 'También: '}{m.reference_contact}
+                </p>
+              )}
+            </div>
+          )}
         </section>
       ))}
-      {(ministries ?? []).length === 0 && <p className="card text-sm text-gray-600">La iglesia aún no publicó sus ministerios.</p>}
+      {((ministries as any[]) ?? []).length === 0 && <p className="card text-sm text-gray-600">La iglesia aún no publicó sus ministerios.</p>}
     </div>
   );
 }

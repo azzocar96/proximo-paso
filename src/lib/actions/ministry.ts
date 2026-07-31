@@ -105,3 +105,40 @@ function friendly(error: { code?: string; message: string }): string {
   if (error.code === '42501') return 'Esta solicitud está reservada a quienes ya completaron el curso y forman parte de un ministerio.';
   return error.message;
 }
+
+// ---------- Fase 3e: la ficha del ministerio ----------
+export async function updateMinistryProfile(ministryId: string, form: {
+  description: string; requirements: string; meetingInfo: string;
+  leaderName: string; leaderContact: string; showContact: boolean;
+  referenceName: string; referenceContact: string;
+}): Promise<FormState> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc('update_ministry_profile', {
+    p_ministry: ministryId,
+    p_description: form.description,
+    p_requirements: form.requirements,
+    p_meeting_info: form.meetingInfo,
+    p_leader_name: form.leaderName,
+    p_leader_contact: form.leaderContact,
+    p_show_contact: form.showContact,
+    p_reference_name: form.referenceName,
+    p_reference_contact: form.referenceContact,
+  });
+  if (error) return { error: friendly(error) };
+  revalidatePath('/liderazgo');
+  revalidatePath('/ministerios');
+  return { success: 'Ficha guardada. Ya se ve así en Ministerios.' };
+}
+
+export async function addMinistryMember(ministryId: string, email: string, note?: string): Promise<FormState> {
+  if (!email || !email.includes('@')) return { error: 'Escribe el correo de la persona.' };
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc('add_ministry_member', {
+    p_ministry: ministryId, p_email: email, p_note: note || null,
+  });
+  if (error) return { error: friendly(error) };
+  revalidatePath('/liderazgo');
+  revalidatePath('/ministerios');
+  const name = (data as any)?.name;
+  return { success: name ? `${name} ya forma parte de tu equipo.` : 'Persona agregada al equipo.' };
+}
