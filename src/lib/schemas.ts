@@ -7,13 +7,34 @@ export const registerSchema = z.object({
   email: z.string().trim().toLowerCase().email('Correo inválido'),
   password: z.string().min(8, 'Mínimo 8 caracteres').max(72),
   privacy_consent: z.literal(true, { errorMap: () => ({ message: 'Debes aceptar la política de privacidad' }) }),
+  // Fase 3d: obligatoria. Con ella la app sabe si quien se registra es menor
+  // y puede pedir los datos del representante en el momento.
+  // La regex sola deja pasar fechas que no existen (1990-02-31), que JS
+  // "normaliza" a marzo y luego revientan al insertarse. El refine comprueba
+  // el viaje de ida y vuelta: si no vuelve igual, la fecha no existe.
+  birth_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Indica tu fecha de nacimiento')
+    .refine((s) => {
+      const d = new Date(s + 'T00:00:00Z');
+      return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+    }, 'Esa fecha no existe. Revísala, por favor.'),
+  guardian_name: z.string().trim().max(120).optional().or(z.literal('')),
+  guardian_contact: z.string().trim().max(120).optional().or(z.literal('')),
+  guardian_consent: z.boolean().optional(),
 });
 
 export const profileSchema = z.object({
   first_name: z.string().trim().min(2).max(60),
   middle_name: z.string().trim().max(60).optional().or(z.literal('')),
   last_name: z.string().trim().min(2).max(60),
-  birth_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida').optional().or(z.literal('')),
+  birth_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida')
+    .refine((s) => {
+      const d = new Date(s + 'T00:00:00Z');
+      if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== s) return false;
+      const now = Date.now();
+      // Ni futuro ni hace 120 años: la misma regla que el registro.
+      return d.getTime() <= now && d.getTime() > now - 120 * 365.25 * 24 * 3600 * 1000;
+    }, 'Revisa tu fecha de nacimiento.')
+    .optional().or(z.literal('')),
   phone: z.string().trim().max(25).optional().or(z.literal('')),
   address: z.string().trim().max(160).optional().or(z.literal('')),
   city: z.string().trim().max(80).optional().or(z.literal('')),
@@ -21,6 +42,8 @@ export const profileSchema = z.object({
   zip_code: z.string().trim().max(12).optional().or(z.literal('')),
   emergency_contact_name: z.string().trim().max(120).optional().or(z.literal('')),
   emergency_contact_phone: z.string().trim().max(25).optional().or(z.literal('')),
+  // Fase 3d: cada persona decide si su cumpleaños aparece en el muro.
+  show_birthday: z.union([z.literal('on'), z.literal('')]).optional(),
 });
 
 export const cycleSchema = z.object({

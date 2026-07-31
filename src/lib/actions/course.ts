@@ -28,12 +28,30 @@ export async function updateProfile(_prev: FormState, formData: FormData): Promi
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Sesión no válida.' };
+  // Si al editar el perfil la fecha convierte a la persona en menor, aplicamos
+  // la misma regla que en el registro: no se puede quedar sin representante.
+  if (d.birth_date) {
+    const { data: policy } = await supabase.rpc('fn_registration_policy');
+    const minAge = Number((policy as any)?.min_age ?? 18);
+    const [by, bm, bd] = d.birth_date.split('-').map(Number);
+    const now = new Date();
+    let age = now.getFullYear() - by;
+    if (now.getMonth() + 1 < bm || (now.getMonth() + 1 === bm && now.getDate() < bd)) age--;
+    if (age < minAge) {
+      const { data: prof } = await supabase.from('profiles')
+        .select('guardian_name,guardian_contact,guardian_consent').eq('id', user.id).single();
+      if (!prof?.guardian_name || !prof?.guardian_contact || prof?.guardian_consent !== true) {
+        return { error: `Con esa fecha eres menor de ${minAge} años y necesitamos los datos de tu representante. Escríbenos desde Contacto y lo resolvemos.` };
+      }
+    }
+  }
   const { error } = await supabase.from('profiles').update({
     first_name: d.first_name, middle_name: d.middle_name || null, last_name: d.last_name,
     birth_date: d.birth_date || null, phone: d.phone || null, address: d.address || null,
     city: d.city || null, state: d.state || null, zip_code: d.zip_code || null,
     emergency_contact_name: d.emergency_contact_name || null,
     emergency_contact_phone: d.emergency_contact_phone || null,
+    show_birthday: d.show_birthday === 'on',
   }).eq('id', user.id);
   if (error) return { error: 'No pudimos guardar los cambios.' };
   revalidatePath('/perfil');

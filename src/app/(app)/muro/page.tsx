@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Newspaper } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { Composer, PostCard, LoadMore } from './ui';
+import { Novedades } from '@/components/Novedades';
 import type { WallRef } from '@/lib/actions/wall';
 
 export const metadata = { title: 'Muro' };
@@ -55,9 +56,15 @@ export default async function MuroPage({ searchParams }: { searchParams: { w?: s
     || (ref.wall === 'ministry' && walls.led_ministries.includes(ref.ministryId!))
     || (ref.wall === 'step' && walls.speaker_steps.includes(ref.step!));
 
-  const { data: postsData, error } = await supabase.rpc('get_wall_posts', {
-    p_wall: ref.wall, p_ministry: ref.ministryId ?? null, p_step: ref.step ?? null,
-  });
+  // Las novedades (anuncios + cumpleaños) solo acompañan al muro general:
+  // en el de un ministerio o un paso serían ruido fuera de contexto.
+  const [{ data: postsData, error }, { data: birthdays, error: bdError }, { data: news, error: newsError }] = await Promise.all([
+    supabase.rpc('get_wall_posts', {
+      p_wall: ref.wall, p_ministry: ref.ministryId ?? null, p_step: ref.step ?? null,
+    }),
+    ref.wall === 'general' ? supabase.rpc('get_week_birthdays') : Promise.resolve({ data: [], error: null }),
+    ref.wall === 'general' ? supabase.rpc('get_news', { p_limit: 2 }) : Promise.resolve({ data: [], error: null }),
+  ]);
   const posts = (postsData as any[]) ?? [];
 
   return (
@@ -72,6 +79,16 @@ export default async function MuroPage({ searchParams }: { searchParams: { w?: s
             </Link>
           ))}
         </nav>
+      )}
+      {/* No silenciamos el error: si las novedades fallan hay que verlo, no que
+          desaparezcan sin rastro (lección del incidente de permisos). */}
+      {ref.wall === 'general' && (bdError || newsError) && (
+        <p className="text-xs text-red-600">
+          No pudimos cargar las novedades: {(bdError ?? newsError)?.message}
+        </p>
+      )}
+      {ref.wall === 'general' && (
+        <Novedades birthdays={(birthdays as any[]) ?? []} news={(news as any[]) ?? []} />
       )}
       {canPost && <Composer refData={ref} />}
       {error && <div className="card text-sm text-red-600">{error.message}</div>}

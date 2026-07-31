@@ -22,7 +22,18 @@ export function ProfileForm({ profile }: { profile: any }) {
       </div>
       <div><label className="label">Apellido *</label><input className="input" name="last_name" defaultValue={profile?.last_name ?? ''} required /></div>
       <div className="grid grid-cols-2 gap-3">
-        <div><label className="label">Fecha de nacimiento</label><input className="input" type="date" name="birth_date" defaultValue={profile?.birth_date ?? ''} /></div>
+        <div>
+          <label className="label">Fecha de nacimiento</label>
+          <input className="input" type="date" name="birth_date" defaultValue={profile?.birth_date ?? ''} />
+          <label className="flex items-start gap-2.5 text-xs text-gray-600 mt-2">
+            <input type="checkbox" name="show_birthday" className="mt-0.5 w-4 h-4"
+              defaultChecked={profile?.show_birthday !== false} />
+            <span>
+              Mostrar mi cumpleaños en el muro para que la comunidad me salude.
+              Solo se ve el día y el mes, nunca el año ni tu edad.
+            </span>
+          </label>
+        </div>
         <div><label className="label">Teléfono</label><input className="input" type="tel" name="phone" defaultValue={profile?.phone ?? ''} /></div>
       </div>
       <div><label className="label">Dirección</label><input className="input" name="address" defaultValue={profile?.address ?? ''} /></div>

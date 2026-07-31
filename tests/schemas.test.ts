@@ -7,9 +7,17 @@ describe('registro', () => {
     expect(bad.success).toBe(false);
     const noConsent = registerSchema.safeParse({ first_name: 'Ana', last_name: 'Diaz', email: 'a@b.com', password: '12345678', privacy_consent: false });
     expect(noConsent.success).toBe(false);
-    const ok = registerSchema.safeParse({ first_name: 'Ana', last_name: 'Diaz', email: 'A@B.com', password: '12345678', privacy_consent: true });
+    const ok = registerSchema.safeParse({ first_name: 'Ana', last_name: 'Diaz', email: 'A@B.com', password: '12345678', privacy_consent: true, birth_date: '1990-05-10' });
     expect(ok.success).toBe(true);
     if (ok.success) expect(ok.data.email).toBe('a@b.com'); // normaliza a minúsculas
+  });
+
+  it('exige fecha de nacimiento y rechaza fechas que no existen', () => {
+    const base = { first_name: 'Ana', last_name: 'Diaz', email: 'a@b.com', password: '12345678', privacy_consent: true };
+    expect(registerSchema.safeParse(base).success).toBe(false);                              // sin fecha
+    expect(registerSchema.safeParse({ ...base, birth_date: '1990-02-31' }).success).toBe(false); // 31 de febrero
+    expect(registerSchema.safeParse({ ...base, birth_date: '10-05-1990' }).success).toBe(false); // formato al revés
+    expect(registerSchema.safeParse({ ...base, birth_date: '1990-05-10' }).success).toBe(true);
   });
 });
 
