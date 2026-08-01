@@ -501,3 +501,38 @@ grant execute on function get_servant_sessions() to authenticated;
 grant execute on function get_ministry_candidates(uuid) to authenticated;
 grant execute on function accept_member_request(uuid,text) to authenticated;
 grant execute on function request_active_member(text) to authenticated;
+
+-- ---------- 16. CRÍTICO (encontrado al verificar): marcar asistencia nunca funcionó ----------
+-- Al probar la aprobación de una asistencia por parte de una oradora salió:
+--
+--   column "status" is of type enrollment_status but expression is of type text
+--
+-- Viene de la 002: `update enrollments set status = case when … then
+-- 'requirements_pending' else 'in_progress' end`. Las dos ramas del CASE son
+-- literales sin tipo, así que Postgres lo resuelve como `text` y la asignación
+-- a la columna enum revienta. Ese bloque se ejecuta en cuanto alguien tiene UN
+-- paso hecho, y `register_attendance` llama a esta función siempre: significa
+-- que **registrar asistencia por QR fallaba desde la primera clase**, igual que
+-- aprobar una asistencia olvidada.
+--
+-- Encaja con lo que ya sabíamos: el QR ni siquiera se podía generar (020), así
+-- que nadie llegó nunca a escanear uno y nadie vio este error.
+--
+-- Se corrige sobre la definición real, no sobre una copia escrita a mano.
+do $mig$
+declare def text;
+begin
+  select pg_get_functiondef(p.oid) into def
+    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'fn_refresh_enrollment';
+  if def is null then raise exception 'fn_refresh_enrollment no existe'; end if;
+  if position('::enrollment_status' in def) > 0 then return; end if;
+
+  def := replace(def,
+    'then ''requirements_pending'' else ''in_progress'' end',
+    'then ''requirements_pending''::enrollment_status else ''in_progress''::enrollment_status end');
+  if position('::enrollment_status' in def) = 0 then
+    raise exception 'No se encontró el CASE de estado dentro de fn_refresh_enrollment';
+  end if;
+  execute def;
+end $mig$;
