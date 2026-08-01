@@ -85,7 +85,10 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
     if (error.message.includes('already registered')) return { error: 'Este correo ya tiene una cuenta. Inicia sesión.' };
     return { error: 'No pudimos crear tu cuenta. Intenta de nuevo.' };
   }
-  return { success: 'Cuenta creada. Revisa tu correo y haz clic en el enlace de verificación para activarla.' };
+  // La cuenta queda activa al instante (Supabase está en autoconfirmación
+  // mientras la iglesia no tenga correo saliente propio). No mandamos a nadie
+  // a buscar un correo de verificación que no va a llegar.
+  return { success: 'Cuenta creada. Ya puedes iniciar sesión con tu correo y tu contraseña.' };
 }
 
 export async function signOut() {
@@ -100,7 +103,7 @@ export async function requestPasswordReset(_prev: FormState, formData: FormData)
   const supabase = createClient();
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
   await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${site}/auth/callback?next=/restablecer` });
-  return { success: 'Si el correo existe, te enviamos un enlace para restablecer tu contraseña.' };
+  return { success: 'Si el correo existe, te enviamos un enlace para restablecer tu contraseña. Si en unos minutos no te llega, avísale a un líder o al administrador y te ayudamos a entrar.' };
 }
 
 export async function updatePassword(_prev: FormState, formData: FormData): Promise<FormState> {
