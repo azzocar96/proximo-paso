@@ -75,7 +75,15 @@ end $mig$;
 --
 -- Se cierra por columna, que es lo único que distingue "ver el ministerio" de
 -- "ver su teléfono". Las funciones security definer siguen leyéndolos.
-revoke select (leader_contact, reference_contact) on ministries from authenticated, anon;
+-- OJO: un `revoke select (columna)` NO quita un permiso concedido a nivel de
+-- TABLA (la 010 dio `select` sobre todas las tablas a `authenticated`), y eso
+-- se comprobó en producción: seguía devolviendo `true`. Hay que quitar el
+-- permiso de tabla y volver a darlo columna por columna.
+revoke select on ministries from authenticated, anon;
+grant select (id, name, description, requirements, meeting_info, image_url, capacity, status,
+              leader_name, reference_name, show_contact, is_course_ministry,
+              created_at, updated_at, deleted_at)
+  on ministries to authenticated;
 
 -- Quien administra sí necesita los datos crudos para editarlos: un RPC que
 -- devuelve la ficha completa SOLO de los ministerios que esa persona maneja.

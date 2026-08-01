@@ -385,7 +385,9 @@ export function ServantsCard({ ministry, servants, candidates }: {
       )}
       {libres.length === 0 && editing === null && (
         <p className="text-xs text-gray-500">
-          Todos los miembros activos de tu equipo ya son servidores. Suma a alguien más al equipo primero.
+          {candidates.length === 0
+            ? 'Todavía no hay nadie en este equipo. Súmalo arriba y después podrás nombrarlo servidor.'
+            : 'Todos los miembros activos de tu equipo ya son servidores.'}
         </p>
       )}
 
