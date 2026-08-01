@@ -38,7 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="px-3 pb-3">
           <p className="font-bold text-[15px]">Panel administrativo</p>
           <p className="text-xs text-gray-400">
-            {role === 'superadmin' || role === 'pastor' ? 'Administrador' : 'Coordinador'}
+            {role === 'superadmin' || role === 'pastor' ? 'Administrador' : 'Servidor'}
           </p>
         </div>
         <nav className="flex md:flex-col gap-0.5 overflow-x-auto pb-2 md:pb-0">

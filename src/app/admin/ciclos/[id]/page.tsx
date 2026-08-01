@@ -61,16 +61,16 @@ export default async function CicloDetailPage({ params }: { params: { id: string
 
       {isAdmin && (
         <section className="space-y-3">
-          <h2 className="font-bold text-lg">Coordinadores del ciclo</h2>
+          <h2 className="font-bold text-lg">Servidores del ciclo</h2>
           <div className="card space-y-3">
             <ul className="text-sm space-y-1">
               {(coords ?? []).map((c: any) => (
                 <li key={c.id}>{c.profiles?.first_name} {c.profiles?.last_name} — {c.profiles?.email}</li>
               ))}
-              {(coords ?? []).length === 0 && <li className="text-gray-500">Sin coordinadores asignados.</li>}
+              {(coords ?? []).length === 0 && <li className="text-gray-500">Sin servidores asignados.</li>}
             </ul>
             <CoordinatorForm cycleId={cycle.id} />
-            <p className="text-xs text-gray-500">El usuario además debe tener rol Coordinador (Usuarios → cambiar rol).</p>
+            <p className="text-xs text-gray-500">La persona además debe tener el rol Servidor (Usuarios → cambiar rol).</p>
           </div>
         </section>
       )}

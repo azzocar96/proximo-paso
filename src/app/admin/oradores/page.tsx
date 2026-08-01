@@ -17,7 +17,7 @@ export default async function OradoresPage() {
       <h1 className="text-2xl font-extrabold">Oradores</h1>
       <p className="text-sm text-gray-600">
         Cada uno de los 4 pasos del curso tiene un orador fijo (no cambia por ciclo). El orador puede
-        aprobar o negar asistencia de su paso, junto con el coordinador del ciclo, y verá el muro de su
+        aprobar o negar asistencia de su paso, junto con los servidores del ciclo, y verá el muro de su
         paso una vez esté disponible. Solo el administrador o el pastor pueden asignar oradores.
       </p>
       <SpeakersPanel steps={STEPS} speakers={(speakers as any) ?? []} />

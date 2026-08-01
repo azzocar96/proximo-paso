@@ -10,7 +10,7 @@ import { Alert } from '@/components/ui/Alert';
 // Nota (Fase 3a): "admin" quedó inerte (sin permisos) — se conserva la
 // etiqueta solo para cuentas legacy que aún tengan ese rol en la base.
 const ROLE_LABEL: Record<string, string> = {
-  participant: 'Participante', coordinator: 'Coordinador', admin: 'Administrador (antiguo, sin acceso)',
+  participant: 'Participante', coordinator: 'Servidor', admin: 'Administrador (antiguo, sin acceso)',
   superadmin: 'Administrador', pastor: 'Pastor',
 };
 function topRole(roles: { role: string }[]): string {

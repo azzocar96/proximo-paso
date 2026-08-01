@@ -98,7 +98,7 @@ export function AttendancePanel({ sessions, selectedId, records, enrolled, pendi
             ))}
           </select>
           <select className="input" value={method} onChange={(e) => setMethod(e.target.value)}>
-            <option value="manual_admin">Manual (admin/coordinador)</option>
+            <option value="manual_admin">Manual (administrador o servidor)</option>
             <option value="makeup">Recuperación (makeup)</option>
             <option value="imported">Importada</option>
           </select>

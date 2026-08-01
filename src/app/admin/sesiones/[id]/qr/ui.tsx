@@ -41,7 +41,7 @@ export function QrScreen({ session, initialToken, siteUrl }: {
     setAttendance((data as any) ?? []);
 
     // Fase 3g: ahora dos personas pueden abrir la asistencia de la misma clase
-    // (el coordinador y un servidor del paso), y abrir revoca el código
+    // (un servidor del ciclo y un servidor del paso), y abrir revoca el código
     // anterior. Sin esto, uno seguiría proyectando un código muerto con su
     // cuenta atrás en verde mientras la gente escanea sin que pase nada.
     const { data: live } = await supabase.from('attendance_tokens')

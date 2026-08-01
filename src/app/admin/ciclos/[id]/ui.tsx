@@ -121,7 +121,7 @@ export function CoordinatorForm({ cycleId }: { cycleId: string }) {
       {msg?.error && <Alert kind="error">{msg.error}</Alert>}
       {msg?.success && <Alert kind="success">{msg.success}</Alert>}
       <div className="flex gap-2">
-        <input className="input" placeholder="correo del coordinador" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input className="input" placeholder="correo de quien va a servir" value={email} onChange={(e) => setEmail(e.target.value)} />
         <button className="btn-secondary !py-2 shrink-0" disabled={pending || !email}
           onClick={() => start(async () => setMsg(await assignCoordinator(cycleId, email)))}>Asignar</button>
       </div>

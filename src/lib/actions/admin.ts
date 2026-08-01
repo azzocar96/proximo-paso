@@ -97,10 +97,10 @@ export async function assignCoordinator(cycleId: string, email: string): Promise
     const { data: prof } = await supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle();
     if (!prof) return { error: 'No existe un usuario con ese correo.' };
     const { error } = await supabase.from('cycle_coordinators').insert({ cycle_id: cycleId, user_id: prof.id });
-    if (error) return { error: error.code === '23505' ? 'Ya es coordinador de este ciclo.' : 'No pudimos asignarlo.' };
+    if (error) return { error: error.code === '23505' ? 'Ya sirve en este ciclo.' : 'No pudimos asignarlo.' };
     await supabase.rpc('fn_audit', { p_action: 'assign_coordinator', p_entity: 'course_cycles', p_id: cycleId, p_reason: null, p_details: { email } });
     revalidatePath(`/admin/ciclos/${cycleId}`);
-    return { success: 'Coordinador asignado.' };
+    return { success: 'Servidor del ciclo asignado.' };
   } catch (e) { return { error: (e as Error).message }; }
 }
 

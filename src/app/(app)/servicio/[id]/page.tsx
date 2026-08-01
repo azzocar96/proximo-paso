@@ -7,7 +7,7 @@ import { QrScreen } from '@/app/admin/sesiones/[id]/qr/ui';
 export const metadata = { title: 'Código de asistencia' };
 
 /**
- * La misma pantalla del QR que usa el coordinador, pero para un servidor.
+ * La misma pantalla del QR del panel, aquí para un servidor de paso.
  * El permiso NO se decide aquí: la RPC open_attendance solo deja abrir a quien
  * sirve en ese paso. Esta página únicamente comprueba que la clase le toque,
  * para no mostrar una pantalla que después no va a funcionar.

@@ -123,7 +123,7 @@ export function RequestsHub({ mine, inbox, archive, ministries, isAdmin, isActiv
                     onClick={() => run(key, () => cancelActiveMemberRequest())}>Retirar</button>
                 )}
                 {r.origen === 'attendance' && (
-                  <p className="text-xs text-gray-500">La resuelve el coordinador, el orador o un servidor de ese paso.</p>
+                  <p className="text-xs text-gray-500">La resuelve el orador del paso o un servidor con esa responsabilidad.</p>
                 )}
               </article>
             );
