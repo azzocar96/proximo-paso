@@ -11,10 +11,14 @@
 --
 --   · open_attendance      → genera el token del QR. **Abrir la asistencia
 --                            nunca funcionó.**
---   · fn_refresh_enrollment→ inserta la fila de `certificates`, cuya columna
---                            `verify_code` tiene un DEFAULT que llama a
---                            gen_random_bytes. **Emitir un certificado nunca
---                            funcionó.**
+--   · fn_refresh_enrollment→ se le puso por precaución, pero la auditoría de
+--                            costuras demostró que NO lo necesitaba: los
+--                            DEFAULT de columna se guardan ya resueltos por OID
+--                            en pg_attrdef, así que no consultan el search_path
+--                            de quien inserta. El `alter` es inofensivo y se
+--                            deja, pero el certificado no fallaba por esto:
+--                            fallaba por el control de acceso de get_progress,
+--                            corregido en la 021.
 --
 -- Es un fallo silencioso del tipo peor: no se nota hasta el día que se usa,
 -- y ese día es el día de la primera clase o el de la entrega de certificados.

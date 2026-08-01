@@ -94,7 +94,7 @@ export async function saveSession(sessionId: string, _prev: FormState, formData:
 export async function assignCoordinator(cycleId: string, email: string): Promise<FormState> {
   try {
     const { supabase } = await requireAdminAction();
-    const { data: prof } = await supabase.from('profiles').select('id').eq('email', email.trim().toLowerCase()).maybeSingle();
+    const { data: prof } = await supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle();
     if (!prof) return { error: 'No existe un usuario con ese correo.' };
     const { error } = await supabase.from('cycle_coordinators').insert({ cycle_id: cycleId, user_id: prof.id });
     if (error) return { error: error.code === '23505' ? 'Ya es coordinador de este ciclo.' : 'No pudimos asignarlo.' };
@@ -260,7 +260,7 @@ export async function saveMinistry(ministryId: string | null, _prev: FormState, 
 // ---------- líderes de ministerio (solo superadmin; lo valida la RPC) ----------
 export async function assignMinistryLeader(ministryId: string, email: string): Promise<FormState> {
   const supabase = createClient();
-  const { data: prof } = await supabase.from('profiles').select('id').eq('email', email.trim().toLowerCase()).maybeSingle();
+  const { data: prof } = await supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle();
   if (!prof) return { error: 'No existe un usuario con ese correo.' };
   const { error } = await supabase.rpc('assign_ministry_leader', { p_user: prof.id, p_ministry: ministryId });
   if (error) return { error: error.message };
@@ -427,7 +427,7 @@ export async function addDreamTeamQuestion(text: string, type: string, optionsCs
 export async function assignStepSpeaker(step: number, email: string, bio: string, phone: string): Promise<FormState> {
   try {
     const { supabase } = await requireAdminAction();
-    const { data: prof } = await supabase.from('profiles').select('id').eq('email', email.trim().toLowerCase()).maybeSingle();
+    const { data: prof } = await supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle();
     if (!prof) return { error: 'No existe un usuario con ese correo.' };
     const { error } = await supabase.rpc('assign_step_speaker', { p_step: step, p_user: prof.id, p_bio: bio || null, p_phone: phone || null });
     if (error) return { error: error.message };

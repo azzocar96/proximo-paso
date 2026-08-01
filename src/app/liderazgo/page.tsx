@@ -18,13 +18,14 @@ export default async function LiderazgoPage() {
   const { supabase, user } = await requireMinistryLeader();
   const { data: myRole } = await supabase.rpc('fn_role');
   const isAdminTier = ['pastor', 'superadmin'].includes(myRole as string);
-  let { data: myMinistries } = await supabase.from('ministry_leaders')
-    .select('ministry_id, ministries(id,name,description,requirements,meeting_info,show_contact,leader_name,leader_contact,reference_name,reference_contact,is_course_ministry)').eq('user_id', user.id).order('ministry_id');
-  // Un admin/pastor pasa requireMinistryLeader sin filas propias: ve todos.
-  if (!myMinistries || myMinistries.length === 0) {
-    const { data: all } = await supabase.from('ministries').select('id,name,description,requirements,meeting_info,show_contact,leader_name,leader_contact,reference_name,reference_contact,is_course_ministry').eq('status', 'active').is('deleted_at', null).order('name');
-    myMinistries = (all ?? []).map((m: any) => ({ ministry_id: m.id, ministries: m })) as any;
-  }
+  // Los teléfonos de la ficha ya no se leen por tabla: la migración 021 quitó
+  // el permiso sobre esas dos columnas porque cualquiera con cuenta podía
+  // pedirlas por REST. Ahora vienen por RPC, que solo devuelve los ministerios
+  // que esta persona administra. Un admin/pastor recibe todos.
+  const { data: manage } = await supabase.rpc('get_ministries_manage');
+  let myMinistries = ((manage as any[]) ?? [])
+    .filter((m: any) => m.status === 'active')
+    .map((m: any) => ({ ministry_id: m.id, ministries: m })) as any[];
   const myIds = (myMinistries ?? []).map((m: any) => m.ministry_id);
   const nameOf = new Map((myMinistries ?? []).map((m: any) => [m.ministry_id, m.ministries?.name]));
 

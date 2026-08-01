@@ -33,9 +33,10 @@ function Tag({ estado }: { estado?: string }) {
   return <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${v.c}`}>{v.t}</span>;
 }
 
-export function RequestsHub({ mine, inbox, archive, ministries, isAdmin, loadError }: {
+export function RequestsHub({ mine, inbox, archive, ministries, isAdmin, isActiveMember, loadError }: {
   mine: Row[]; inbox: Row[]; archive: Row[];
-  ministries: { id: string; name: string }[]; isAdmin?: boolean; loadError?: boolean;
+  ministries: { id: string; name: string }[];
+  isAdmin?: boolean; isActiveMember?: boolean; loadError?: boolean;
 }) {
   const [tab, setTab] = useState<'mias' | 'buzon' | 'archivo'>(inbox.length > 0 ? 'buzon' : 'mias');
   const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
@@ -129,8 +130,12 @@ export function RequestsHub({ mine, inbox, archive, ministries, isAdmin, loadErr
           })}
           {mine.length === 0 && <p className="card text-sm text-gray-500">No tienes solicitudes en revisión.</p>}
 
-          <DirectorRequestCard ministries={ministries} busy={busy !== null}
-            onSend={(mid, det) => run('nueva-direccion', () => requestMinistryDirector(mid, det))} />
+          {/* Solo a quien de verdad puede pedirlo: si no, esta pantalla invita
+              a algo que /ministerios le dice que todavía no le toca. */}
+          {isActiveMember && (
+            <DirectorRequestCard ministries={ministries} busy={busy !== null}
+              onSend={(mid, det) => run('nueva-direccion', () => requestMinistryDirector(mid, det))} />
+          )}
         </div>
       )}
 
@@ -171,20 +176,42 @@ export function RequestsHub({ mine, inbox, archive, ministries, isAdmin, loadErr
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <button className="btn-primary !py-2 !px-4 text-sm" disabled={busy !== null}
-                      aria-label={`Aprobar la solicitud de ${r.persona}`}
-                      onClick={() => {
-                        if (!window.confirm(`Vas a aprobar «${TITULO[r.tipo] ?? r.tipo}» de ${r.persona}. ¿Confirmas?`)) return;
-                        run(key, () => aprobar(r));
-                      }}>
-                      {busy === key ? 'Guardando…' : 'Aprobar'}
-                    </button>
+                    {/* En un ingreso, la persona eligió hasta tres equipos: hay
+                        que poder aceptarla en el que corresponda, no solo en el
+                        primero. Es lo mismo que ofrece Mi ministerio. */}
+                    {r.tipo === 'join' && (r.opciones ?? []).length > 0 ? (
+                      (r.opciones as any[]).map((o: any) => (
+                        <button key={o.id} className="btn-primary !py-2 !px-4 text-sm" disabled={busy !== null}
+                          aria-label={`Aceptar a ${r.persona} en ${o.name}`}
+                          onClick={() => {
+                            if (!window.confirm(`Vas a sumar a ${r.persona} a ${o.name}. ¿Confirmas?`)) return;
+                            run(key, () => acceptMinistryJoin(r.id, o.id));
+                          }}>
+                          {busy === key ? 'Guardando…' : `Aceptar en ${o.name} (su ${o.pref}ª opción)`}
+                        </button>
+                      ))
+                    ) : (
+                      <button className="btn-primary !py-2 !px-4 text-sm" disabled={busy !== null}
+                        aria-label={`Aprobar la solicitud de ${r.persona}`}
+                        onClick={() => {
+                          if (!window.confirm(`Vas a aprobar «${TITULO[r.tipo] ?? r.tipo}» de ${r.persona}. ¿Confirmas?`)) return;
+                          run(key, () => aprobar(r));
+                        }}>
+                        {busy === key ? 'Guardando…' : 'Aprobar'}
+                      </button>
+                    )}
                     {puedeRechazar(r, isAdmin) && (
                       <button className="btn-secondary !py-2 !px-4 text-sm" disabled={busy !== null}
                         aria-label={`No aprobar la solicitud de ${r.persona}`}
                         onClick={() => { setRejecting(key); setReason(''); }}>No aprobar</button>
                     )}
                   </div>
+                )}
+                {r.tipo === 'role_change' && (
+                  <p className="text-xs text-amber-700">
+                    Aprobar deja constancia, pero el rol no cambia solo: después hay que aplicarlo con el
+                    selector de <a className="underline" href="/admin/usuarios">Usuarios</a>.
+                  </p>
                 )}
                 {r.tipo === 'join' && !puedeRechazar(r, isAdmin) && (
                   <p className="text-xs text-gray-500">

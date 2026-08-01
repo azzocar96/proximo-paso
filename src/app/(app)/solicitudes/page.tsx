@@ -20,6 +20,11 @@ export default async function SolicitudesPage() {
   ]);
   const { data: role } = await supabase.rpc('fn_role');
   const isAdmin = ['pastor', 'superadmin'].includes(role as string);
+  // Misma fuente de verdad que el menú: sin esto, esta pantalla invitaba a
+  // dirigir un ministerio a alguien a quien /ministerios le dice que todavía
+  // no puede ni verlos. Si la RPC falla, mostramos (igual que el menú).
+  const { data: nav, error: navError } = await supabase.rpc('fn_my_nav');
+  const isActiveMember = Boolean(navError) || (nav as any)?.is_active_member === true;
 
   // Si una de las tres falla no se puede fingir que está vacía: eso ya nos
   // costó una vez que la app entera pareciera en blanco sin dar un solo error.
@@ -41,6 +46,7 @@ export default async function SolicitudesPage() {
         archive={((archive.data as any[]) ?? []) as any}
         ministries={((ministries.data as any[]) ?? []).map((m: any) => ({ id: m.id, name: m.name }))}
         isAdmin={isAdmin}
+        isActiveMember={isActiveMember}
         loadError={loadError}
       />
     </div>

@@ -4,8 +4,10 @@ import { MinistryForm, AssignmentsTable, MinistryLeadersPanel } from './ui';
 export const metadata = { title: 'Ministerios' };
 export default async function MinisteriosAdminPage() {
   const { supabase, role } = await requireAdmin();
+  // Igual que en /liderazgo: los contactos de la ficha ya no se pueden leer
+  // por tabla (migración 021), vienen por RPC.
   const [{ data: ministries }, { data: assignments }, { data: leaders }] = await Promise.all([
-    supabase.from('ministries').select('*').is('deleted_at', null).order('name'),
+    supabase.rpc('get_ministries_manage'),
     supabase.from('ministry_assignments')
       .select('*, ministries(name), profiles!ministry_assignments_user_id_fkey(id,first_name,last_name,email)')
       .order('updated_at', { ascending: false }).limit(200),
@@ -19,7 +21,7 @@ export default async function MinisteriosAdminPage() {
       <section className="space-y-3">
         <h2 className="font-bold">Catálogo</h2>
         <div className="grid md:grid-cols-2 gap-3">
-          {(ministries ?? []).map((m) => (
+          {((ministries as any[]) ?? []).map((m: any) => (
             <details key={m.id} className="card">
               <summary className="cursor-pointer font-semibold">{m.name} {m.status !== 'active' && <span className="badge bg-gray-100 text-gray-500">Inactivo</span>}</summary>
               <div className="pt-3"><MinistryForm ministry={m} /></div>

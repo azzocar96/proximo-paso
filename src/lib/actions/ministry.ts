@@ -78,7 +78,8 @@ export async function acceptMemberRequest(requestId: string, note?: string): Pro
   if (error) return { error: error.message };
   revalidatePath('/liderazgo');
   revalidatePath('/admin/usuarios');
-  return { success: 'Solicitud aceptada.' };
+  revalidatePath('/solicitudes');
+  return { success: 'Solicitud aceptada. Si era un cambio de rol, falta aplicarlo con el selector en Usuarios.' };
 }
 
 export async function rejectMemberRequest(requestId: string, note: string): Promise<FormState> {
