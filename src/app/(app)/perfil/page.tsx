@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { User, Users, BookOpen, HeartHandshake, Mail, Mic, Wrench, ChevronRight, Newspaper } from 'lucide-react';
+import { User, Users, BookOpen, HeartHandshake, Mail, Mic, Wrench, ChevronRight, Newspaper, Inbox, HandHeart } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { ProfileForm, AvatarForm, ActiveMemberCard, SecurityCard } from './ui';
 import { signOut } from '@/lib/actions/auth';
@@ -15,6 +15,8 @@ export default async function PerfilPage() {
       supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
       supabase.rpc('fn_my_nav'),
     ]);
+  const { data: servantRoles } = await supabase.rpc('fn_my_servant_roles');
+  const isServant = ((servantRoles as any[]) ?? []).length > 0;
   const isStaff = ['coordinator', 'pastor', 'superadmin'].includes(role as string);
   const isSpeaker = (mySpeakerSteps ?? []).length > 0;
   // Mismo criterio y misma tolerancia a fallos que el menú lateral (migración 013).
@@ -24,7 +26,9 @@ export default async function PerfilPage() {
   const quickLinks = [
     { href: '/curso', label: 'Mi curso', Icon: BookOpen },
     ...(canSeeMinistries ? [{ href: '/ministerios', label: 'Ministerios', Icon: HeartHandshake }] : []),
+    { href: '/solicitudes', label: 'Solicitudes', Icon: Inbox },
     { href: '/contacto', label: 'Contacto', Icon: Mail },
+    ...(isServant ? [{ href: '/servicio', label: 'Mi servicio', Icon: HandHeart }] : []),
     ...(canSeeWall ? [{ href: '/muro', label: 'Muro', Icon: Newspaper }] : []),
     ...((myLedMinistries ?? []).length > 0 || ['pastor', 'superadmin'].includes(role as string)
       ? [{ href: '/liderazgo', label: 'Mi ministerio (director)', Icon: Users }] : []),

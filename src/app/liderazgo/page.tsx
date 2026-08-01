@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Inbox, Users, Filter } from 'lucide-react';
 import { requireMinistryLeader } from '@/lib/auth';
 import { fmtDate, MEMBER_REQUEST_KIND_LABEL } from '@/lib/utils';
-import { JoinRequestRow, OtherRequestRow, MemberRow, MinistryProfileCard, AddMemberCard } from './ui';
+import { JoinRequestRow, OtherRequestRow, MemberRow, MinistryProfileCard, AddMemberCard, ServantsCard } from './ui';
 import { ActiveMemberRequests } from '@/components/ActiveMemberRequests';
 
 export const metadata = { title: 'Mi ministerio' };
@@ -19,10 +19,10 @@ export default async function LiderazgoPage() {
   const { data: myRole } = await supabase.rpc('fn_role');
   const isAdminTier = ['pastor', 'superadmin'].includes(myRole as string);
   let { data: myMinistries } = await supabase.from('ministry_leaders')
-    .select('ministry_id, ministries(id,name,description,requirements,meeting_info,show_contact,leader_name,leader_contact,reference_name,reference_contact)').eq('user_id', user.id).order('ministry_id');
+    .select('ministry_id, ministries(id,name,description,requirements,meeting_info,show_contact,leader_name,leader_contact,reference_name,reference_contact,is_course_ministry)').eq('user_id', user.id).order('ministry_id');
   // Un admin/pastor pasa requireMinistryLeader sin filas propias: ve todos.
   if (!myMinistries || myMinistries.length === 0) {
-    const { data: all } = await supabase.from('ministries').select('id,name,description,requirements,meeting_info,show_contact,leader_name,leader_contact,reference_name,reference_contact').eq('status', 'active').is('deleted_at', null).order('name');
+    const { data: all } = await supabase.from('ministries').select('id,name,description,requirements,meeting_info,show_contact,leader_name,leader_contact,reference_name,reference_contact,is_course_ministry').eq('status', 'active').is('deleted_at', null).order('name');
     myMinistries = (all ?? []).map((m: any) => ({ ministry_id: m.id, ministries: m })) as any;
   }
   const myIds = (myMinistries ?? []).map((m: any) => m.ministry_id);
@@ -39,6 +39,16 @@ export default async function LiderazgoPage() {
     // ya hicieron el curso. La RPC devuelve [] si quien mira no tiene ese papel.
     supabase.rpc('get_active_member_requests'),
   ]);
+
+  // Fase 3g: servidores y candidatos de cada ministerio que dirige.
+  const servantData = await Promise.all((myMinistries ?? []).map(async (m: any) => {
+    const [{ data: servants }, { data: candidates }] = await Promise.all([
+      supabase.rpc('get_ministry_servants', { p_ministry: m.ministry_id }),
+      supabase.rpc('get_ministry_candidates', { p_ministry: m.ministry_id }),
+    ]);
+    return { id: m.ministry_id, servants: (servants as any[]) ?? [], candidates: (candidates as any[]) ?? [] };
+  }));
+  const servantsOf = new Map(servantData.map((d) => [d.id, d]));
 
   const joins = (requests ?? []).filter((r: any) =>
     r.kind === 'join' && (r.ministry_preferences ?? []).some((m: string) => myIds.includes(m)));
@@ -98,6 +108,17 @@ export default async function LiderazgoPage() {
       <div className="space-y-3">
         {(myMinistries ?? []).map((m: any) => (
           m.ministries ? <MinistryProfileCard key={m.ministry_id} ministry={m.ministries} /> : null
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        {(myMinistries ?? []).map((m: any) => (
+          m.ministries ? (
+            <ServantsCard key={`srv-${m.ministry_id}`}
+              ministry={{ id: m.ministry_id, name: m.ministries.name, is_course_ministry: m.ministries.is_course_ministry }}
+              servants={servantsOf.get(m.ministry_id)?.servants ?? []}
+              candidates={(servantsOf.get(m.ministry_id)?.candidates ?? []) as any} />
+          ) : null
         ))}
       </div>
 

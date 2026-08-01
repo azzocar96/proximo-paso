@@ -134,18 +134,26 @@ export async function removeAttendance(sessionId: string, userId: string, reason
   revalidatePath('/admin/asistencia');
   return { success: 'Asistencia eliminada.' };
 }
+// Fase 3g: estas dos también se usan desde el buzón de Solicitudes, que ve
+// gente que no entra al panel (oradores y servidores de paso). Por eso ahora
+// refrescan las dos pantallas y traducen el error a algo legible.
 export async function approveAttendanceRequest(id: string, note?: string): Promise<FormState> {
   const supabase = createClient();
   const { error } = await supabase.rpc('approve_attendance_request', { p_id: id, p_note: note || null });
-  if (error) return { error: error.message };
+  if (error) return { error: error.code === 'P0001' ? error.message : 'No pudimos aprobarla. Intenta de nuevo.' };
   revalidatePath('/admin/asistencia');
+  revalidatePath('/solicitudes');
   return { success: 'Asistencia aprobada.' };
 }
 export async function rejectAttendanceRequest(id: string, reason: string): Promise<FormState> {
+  if (!reason || reason.trim().length < 5) {
+    return { error: 'Escribe el motivo (mínimo 5 caracteres). La persona lo va a leer.' };
+  }
   const supabase = createClient();
   const { error } = await supabase.rpc('reject_attendance_request', { p_id: id, p_reason: reason });
-  if (error) return { error: error.message };
+  if (error) return { error: error.code === 'P0001' ? error.message : 'No pudimos rechazarla. Intenta de nuevo.' };
   revalidatePath('/admin/asistencia');
+  revalidatePath('/solicitudes');
   return { success: 'Solicitud rechazada.' };
 }
 export async function overrideRequirement(enrollmentId: string, kind: 'test' | 'dream_team', reason: string): Promise<FormState> {

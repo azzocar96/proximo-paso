@@ -13,8 +13,9 @@ export function QrScreen({ session, initialToken, siteUrl }: {
 }) {
   const [token, setToken] = useState(initialToken);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
-  const [ttl, setTtl] = useState(15);
+  const [ttl, setTtl] = useState(30);  // Fase 3g: el QR pasó de 15 a 30 minutos
   const [error, setError] = useState<string | null>(null);
+  const [stale, setStale] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
   const [attendance, setAttendance] = useState<Att[]>([]);
   const [full, setFull] = useState(false);
@@ -38,6 +39,27 @@ export function QrScreen({ session, initialToken, siteUrl }: {
       .select('id,recorded_at,method, profiles(first_name,last_name)')
       .eq('session_id', session.id).order('recorded_at', { ascending: false });
     setAttendance((data as any) ?? []);
+
+    // Fase 3g: ahora dos personas pueden abrir la asistencia de la misma clase
+    // (el coordinador y un servidor del paso), y abrir revoca el código
+    // anterior. Sin esto, uno seguiría proyectando un código muerto con su
+    // cuenta atrás en verde mientras la gente escanea sin que pase nada.
+    const { data: live } = await supabase.from('attendance_tokens')
+      .select('token,expires_at').eq('session_id', session.id).eq('revoked', false)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    setToken((prev) => {
+      const vivo = (live as any) ?? null;
+      if (prev?.token === vivo?.token) return prev;
+      if (prev && vivo && prev.token !== vivo.token) {
+        setStale('Otra persona generó un código nuevo. Este es el que vale ahora.');
+      } else if (prev && !vivo) {
+        setStale('La asistencia se cerró desde otro dispositivo.');
+      } else {
+        setStale(null);
+      }
+      return vivo;
+    });
   }, [session.id]);
 
   useEffect(() => {
@@ -51,13 +73,13 @@ export function QrScreen({ session, initialToken, siteUrl }: {
   const ss = String(remaining % 60).padStart(2, '0');
 
   async function generate() {
-    setError(null);
+    setError(null); setStale(null);
     const r = await openAttendance(session.id, ttl);
     if (r.error) setError(r.error);
     else setToken({ token: r.token!, expires_at: r.expires_at! });
   }
   async function close() {
-    setError(null);
+    setError(null); setStale(null);
     const r = await closeAttendance(session.id);
     if (r?.error) setError(r.error);
     else setToken(null);
@@ -73,6 +95,7 @@ export function QrScreen({ session, initialToken, siteUrl }: {
         <button className="btn-secondary !py-2" onClick={() => setFull(!full)}>{full ? 'Salir de pantalla completa' : <><Maximize className="w-4 h-4" aria-hidden /> Pantalla completa</>}</button>
       </div>
       {error && <Alert kind="error">{error}</Alert>}
+      {stale && <Alert kind="info">{stale}</Alert>}
 
       <div className={`grid ${full ? 'md:grid-cols-2 gap-8 items-start mt-6' : 'md:grid-cols-2 gap-5'}`}>
         <div className="card text-center space-y-4">

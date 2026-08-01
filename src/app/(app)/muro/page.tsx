@@ -10,7 +10,7 @@ export const metadata = { title: 'Muro' };
 type Walls = {
   general: boolean; can_post_general: boolean; is_admin: boolean;
   ministries: { id: string; name: string }[]; steps: number[];
-  led_ministries: string[]; speaker_steps: number[];
+  led_ministries: string[]; speaker_steps: number[]; servant_ministries?: string[];
 };
 
 export default async function MuroPage({ searchParams }: { searchParams: { w?: string } }) {
@@ -18,7 +18,7 @@ export default async function MuroPage({ searchParams }: { searchParams: { w?: s
   const { data, error: wallsError } = await supabase.rpc('get_my_walls');
   const walls = (data ?? {
     general: false, can_post_general: false, is_admin: false,
-    ministries: [], steps: [], led_ministries: [], speaker_steps: [],
+    ministries: [], steps: [], led_ministries: [], speaker_steps: [], servant_ministries: [],
   }) as Walls;
 
   const tabs: { key: string; label: string }[] = [
@@ -53,7 +53,9 @@ export default async function MuroPage({ searchParams }: { searchParams: { w?: s
       : { wall: 'step', step: Number(sel.slice(2)) };
   const canPost = walls.is_admin
     || (ref.wall === 'general' && walls.can_post_general)
+    // Fase 3g: además del director, quien él autorizó a publicar en su muro.
     || (ref.wall === 'ministry' && walls.led_ministries.includes(ref.ministryId!))
+    || (ref.wall === 'ministry' && (walls.servant_ministries ?? []).includes(ref.ministryId!))
     || (ref.wall === 'step' && walls.speaker_steps.includes(ref.step!));
 
   // Las novedades (anuncios + cumpleaños) solo acompañan al muro general:

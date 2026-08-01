@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {
   Home, TrendingUp, ScanLine, Megaphone, User, BookOpen,
-  HeartHandshake, Mail, Mic, Wrench, LogOut, Users, Newspaper,
+  HeartHandshake, Mail, Mic, Wrench, LogOut, Users, Newspaper, Inbox, HandHeart,
 } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { signOut } from '@/lib/actions/auth';
@@ -23,6 +23,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
       supabase.rpc('fn_my_nav'),
     ]);
+  // Fase 3g: el servidor de un ministerio no es director ni orador, pero puede
+  // tener responsabilidades reales (mostrar el QR, confirmar asistencias).
+  const { data: servantRoles } = await supabase.rpc('fn_my_servant_roles');
+  const isServant = ((servantRoles as any[]) ?? []).length > 0;
   // Nota (Fase 3a): "admin" quedó inerte — el nivel más alto ahora es pastor/superadmin.
   const isStaff = ['coordinator', 'pastor', 'superadmin'].includes(role as string);
   const isSpeaker = (mySpeakerSteps ?? []).length > 0;
@@ -55,8 +59,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {canSeeWall && (
           <Link href="/muro" className="nav-item"><Newspaper className="nav-item-icon" aria-hidden /> Muro</Link>
         )}
+        <Link href="/solicitudes" className="nav-item"><Inbox className="nav-item-icon" aria-hidden /> Solicitudes</Link>
         <Link href="/contacto" className="nav-item"><Mail className="nav-item-icon" aria-hidden /> Contacto</Link>
-        {(isSpeaker || isStaff || isLeader) && <div className="my-2 border-t border-gray-100" />}
+        {(isSpeaker || isStaff || isLeader || isServant) && <div className="my-2 border-t border-gray-100" />}
+        {isServant && (
+          <Link href="/servicio" className="nav-item !text-brand-700 hover:!bg-brand-50">
+            <HandHeart className="nav-item-icon !text-brand-600" aria-hidden /> Mi servicio
+          </Link>
+        )}
         {isLeader && (
           <Link href="/liderazgo" className="nav-item !text-brand-700 hover:!bg-brand-50">
             <Users className="nav-item-icon !text-brand-600" aria-hidden /> Mi ministerio

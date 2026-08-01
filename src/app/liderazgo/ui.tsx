@@ -1,12 +1,13 @@
 'use client';
 import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Pencil, UserPlus } from 'lucide-react';
+import { Pencil, UserPlus, HandHeart } from 'lucide-react';
 import {
   acceptMinistryJoin, acceptMemberRequest, rejectMemberRequest, removeMinistryMember,
   updateMinistryProfile, addMinistryMember,
 } from '@/lib/actions/ministry';
 import { Alert } from '@/components/ui/Alert';
+import { setMinistryServant, removeMinistryServant } from '@/lib/actions/servants';
 
 type Person = { first_name?: string; last_name?: string; email?: string };
 
@@ -287,4 +288,188 @@ export function AddMemberCard({ ministries }: { ministries: { id: string; name: 
       </form>
     </section>
   );
+}
+
+// ---------- Fase 3g: los servidores del ministerio ----------
+const PERMISOS: { k: string; label: string; hint: string; soloCurso?: boolean }[] = [
+  { k: 'canShowQr', label: 'Mostrar el código de asistencia', hint: 'Abre, muestra, renueva y cierra la asistencia de los pasos que le marques.', soloCurso: true },
+  { k: 'canApproveAttendance', label: 'Confirmar asistencias olvidadas', hint: 'Resuelve las solicitudes de quien olvidó marcar en sus pasos.', soloCurso: true },
+  { k: 'canPostWall', label: 'Publicar en el muro del ministerio', hint: 'Sus publicaciones las ven los miembros del equipo.' },
+  { k: 'canGiveInfo', label: 'Dar información', hint: 'Su teléfono o correo aparece en la ficha, si además la publicas.' },
+  { k: 'canAddMembers', label: 'Sumar personas al equipo', hint: 'Podrá agregar miembros activos igual que tú.' },
+];
+
+export function ServantsCard({ ministry, servants, candidates }: {
+  ministry: { id: string; name: string; is_course_ministry?: boolean };
+  servants: any[]; candidates: { id: string; nombre: string; ya_es_servidor: boolean }[];
+}) {
+  const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
+  const [pending, start] = useTransition();
+  const [editing, setEditing] = useState<string | null>(null);
+  const router = useRouter();
+  const esCurso = ministry.is_course_ministry === true;
+
+  const vacio = { title: '', contact: '', notes: '', showInProfile: false, canShowQr: false,
+    canApproveAttendance: false, canPostWall: false, canGiveInfo: false, canAddMembers: false, steps: [] as number[] };
+  const [form, setForm] = useState<any>(vacio);
+  const [userId, setUserId] = useState('');
+
+  const abrir = (s: any) => {
+    setEditing(s.user_id); setUserId(s.user_id);
+    setForm({
+      title: s.title ?? '', contact: s.contact ?? '', notes: s.notes ?? '',
+      showInProfile: !!s.show_in_profile, canShowQr: !!s.can_show_qr,
+      canApproveAttendance: !!s.can_approve_attendance, canPostWall: !!s.can_post_wall,
+      canGiveInfo: !!s.can_give_info, canAddMembers: !!s.can_add_members,
+      steps: (s.pasos ?? []) as number[],
+    });
+  };
+  const cerrar = () => { setEditing(null); setUserId(''); setForm(vacio); };
+  const guardar = () => start(async () => {
+    const r = await setMinistryServant(ministry.id, userId, form);
+    setMsg(r); if (r?.success) cerrar();
+    router.refresh();
+  });
+
+  const libres = candidates.filter((c) => !c.ya_es_servidor);
+
+  return (
+    <section className="card space-y-3">
+      <h2 className="font-bold inline-flex items-center gap-2">
+        <HandHeart className="w-4 h-4 text-brand-600" aria-hidden /> Servidores de {ministry.name}
+      </h2>
+      <p className="text-xs text-gray-500">
+        Son tu gente de confianza dentro del equipo. Tú decides qué puede hacer cada uno y se lo puedes quitar
+        cuando quieras. Solo puedes nombrar a quien ya está en tu equipo.
+      </p>
+      {msg?.error && <Alert kind="error">{msg.error}</Alert>}
+      {msg?.success && <Alert kind="success">{msg.success}</Alert>}
+
+      <ul className="divide-y divide-gray-100">
+        {servants.map((s: any) => (
+          <li key={s.user_id} className="py-2.5 space-y-1">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-semibold text-sm">{s.nombre}</p>
+                {s.title && <p className="text-xs text-gray-500">{s.title}</p>}
+                <p className="text-xs text-gray-400">
+                  {PERMISOS.filter((p) => s[snake(p.k)]).map((p) => p.label).join(' · ') || 'Sin responsabilidades'}
+                  {(s.pasos ?? []).length > 0 ? ` · Paso ${(s.pasos as number[]).join(', ')}` : ''}
+                </p>
+                {s.activa === false && (
+                  <p className="text-xs text-amber-700">
+                    Ya no está en el equipo o dejó de ser miembro activo: sus permisos no tienen efecto.
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button className="text-brand-700 underline text-xs" disabled={pending}
+                  onClick={() => abrir(s)}>Cambiar</button>
+                <button className="text-red-600 underline text-xs" disabled={pending}
+                  onClick={() => {
+                    if (!window.confirm(`${s.nombre} dejará de ser servidora. Sigue en tu equipo. ¿Confirmas?`)) return;
+                    start(async () => { setMsg(await removeMinistryServant(ministry.id, s.user_id)); router.refresh(); });
+                  }}>Quitar</button>
+              </div>
+            </div>
+          </li>
+        ))}
+        {servants.length === 0 && <li className="py-2 text-sm text-gray-500">Todavía no nombraste servidores.</li>}
+      </ul>
+
+      {editing === null && (
+        <button className="btn-secondary !py-2 text-sm" disabled={pending || libres.length === 0}
+          onClick={() => { setEditing(''); setForm(vacio); setUserId(''); }}>
+          Nombrar un servidor
+        </button>
+      )}
+      {libres.length === 0 && editing === null && (
+        <p className="text-xs text-gray-500">
+          Todos los miembros activos de tu equipo ya son servidores. Suma a alguien más al equipo primero.
+        </p>
+      )}
+
+      {editing !== null && (
+        <div className="rounded-xl border border-gray-200 p-3 space-y-3">
+          {editing === '' && (
+            <div>
+              <label className="label">Persona de tu equipo</label>
+              <select className="input" value={userId} onChange={(e) => setUserId(e.target.value)}>
+                <option value="" disabled>Elige a quién nombrar…</option>
+                {libres.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </select>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="label">Cargo (opcional)</label>
+              <input className="input" maxLength={80} value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ej.: asistente de alabanza" /></div>
+            <div><label className="label">Teléfono o correo</label>
+              <input className="input" maxLength={160} value={form.contact}
+                onChange={(e) => setForm({ ...form, contact: e.target.value })} /></div>
+          </div>
+
+          <fieldset className="space-y-2">
+            <legend className="label">Qué le confías</legend>
+            {/* Se ocultan con CSS, nunca se desmontan: si se desmontan, el
+                director no puede APAGAR un permiso que ya estaba encendido. */}
+            {PERMISOS.map((p) => (
+              <label key={p.k} className={`flex items-start gap-2.5 text-sm ${(!esCurso && p.soloCurso) ? 'hidden' : ''}`}>
+                <input type="checkbox" className="mt-0.5 w-4 h-4" checked={!!form[p.k]}
+                  onChange={(e) => setForm({ ...form, [p.k]: e.target.checked })} />
+                <span><b>{p.label}</b><span className="block text-xs text-gray-500">{p.hint}</span></span>
+              </label>
+            ))}
+          </fieldset>
+
+          <div className={esCurso ? '' : 'hidden'}>
+            <div>
+              <label className="label">¿En qué pasos sirve?</label>
+              <div className="flex gap-2 flex-wrap">
+                {[1, 2, 3, 4].map((n) => {
+                  const on = (form.steps as number[]).includes(n);
+                  return (
+                    <button key={n} type="button" aria-pressed={on}
+                      className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${on ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-600 border-gray-200'}`}
+                      onClick={() => setForm({
+                        ...form,
+                        steps: on ? (form.steps as number[]).filter((x) => x !== n) : [...(form.steps as number[]), n],
+                      })}>
+                      Paso {n}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Solo podrá mostrar el código y confirmar asistencias de los pasos que marques aquí.
+              </p>
+            </div>
+          </div>
+
+          <label className="flex items-start gap-2.5 text-sm">
+            <input type="checkbox" className="mt-0.5 w-4 h-4" checked={form.showInProfile}
+              onChange={(e) => setForm({ ...form, showInProfile: e.target.checked })} />
+            <span><b>Que aparezca en la ficha del ministerio</b>
+              <span className="block text-xs text-gray-500">Lo verá cualquiera que entre a Ministerios.</span></span>
+          </label>
+
+          <div><label className="label">Nota interna (opcional)</label>
+            <input className="input" maxLength={300} value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+
+          <div className="flex flex-wrap gap-2">
+            <button className="btn-primary !py-2 text-sm" disabled={pending || !userId} onClick={guardar}>
+              {pending ? 'Guardando…' : 'Guardar'}
+            </button>
+            <button className="btn-secondary !py-2 text-sm" disabled={pending} onClick={cerrar}>Cancelar</button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** Las casillas viajan en camelCase al servidor y vuelven en snake_case de la base. */
+function snake(k: string): string {
+  return k.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
 }
