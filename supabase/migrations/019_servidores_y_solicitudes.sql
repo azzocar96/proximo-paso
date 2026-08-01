@@ -367,8 +367,13 @@ returns jsonb language sql stable security definer set search_path = public as $
 $$;
 
 -- ---------- 6. El servidor puede con la asistencia de SU paso ----------
+-- `search_path` incluye `extensions` a propósito: `gen_random_bytes` (pgcrypto)
+-- vive ahí, no en `public`. Con solo `public` esta función fallaba con
+-- "function gen_random_bytes(integer) does not exist" — venía así desde la 002
+-- y se descubrió al probar la apertura del QR simulando a una servidora.
 create or replace function open_attendance(p_session uuid, p_ttl_minutes int default null)
-returns table(token text, expires_at timestamptz) language plpgsql security definer set search_path = public as $$
+returns table(token text, expires_at timestamptz) language plpgsql security definer
+set search_path = public, extensions as $$
 declare s record; ttl int; tok text; exp timestamptz;
 begin
   select cs.*, cc.id as cid into s from course_sessions cs join course_cycles cc on cc.id=cs.cycle_id where cs.id=p_session;
@@ -776,7 +781,8 @@ begin
     on conflict (user_id, ministry_id) do nothing;
   end if;
 
-  update member_requests set status = case when p_accept then 'accepted' else 'rejected' end,
+  -- El cast es obligatorio: `status` es un enum y el CASE devuelve text.
+  update member_requests set status = (case when p_accept then 'accepted' else 'rejected' end)::member_request_status,
          resolved_at = now(), resolved_by = auth.uid(),
          resolved_ministry_id = case when p_accept then r.target_ministry_id end,
          resolution_note = nullif(btrim(coalesce(p_note,'')),'')
