@@ -1,0 +1,55 @@
+Esta es la política de privacidad de la aplicación Próximo Paso, de Iglesia Global Orlando (735 Herndon Ave, Orlando, FL 32803). Está escrita para que la entienda cualquiera, sin lenguaje jurídico. Si algo no queda claro, pregúntanos desde la página de Contacto.
+
+QUÉ GUARDAMOS Y POR QUÉ
+
+Cuando creas tu cuenta te pedimos tu nombre y apellido, tu correo, una contraseña y tu fecha de nacimiento. El nombre y el correo son para identificarte. La contraseña nunca la vemos: se guarda cifrada y ni el equipo pastoral ni quien administra la aplicación pueden leerla.
+
+De tu fecha de nacimiento usamos dos cosas y solo dos: comprobar que tienes la edad mínima para inscribirte por tu cuenta, y felicitarte el día de tu cumpleaños. En la aplicación se muestran únicamente el día y el mes; nunca el año ni tu edad. Puedes desactivar esa felicitación cuando quieras desde tu perfil.
+
+Si completas tu perfil, puedes añadir teléfono, dirección, ciudad, estado, código postal, una foto y un contacto de emergencia. Todo eso es opcional. La dirección y el contacto de emergencia existen para poder ayudarte si pasa algo durante una actividad.
+
+TU UBICACIÓN
+
+Para registrar tu asistencia con el código QR, la aplicación le pide permiso a tu teléfono para conocer tu ubicación en ese momento. Es la manera de comprobar que estás en el lugar de la clase.
+
+De esa consulta guardamos solo dos números: a cuántos metros estabas del salón y qué precisión reportó tu teléfono. Las coordenadas exactas no se guardan en ningún sitio. Es decir: el sistema sabe que estabas a cuarenta metros del salón, y no sabe en qué punto del planeta estabas. Fuera de ese momento, la aplicación nunca consulta tu ubicación.
+
+LO QUE ESCRIBES
+
+Si publicas o comentas en los muros, lo que escribes queda guardado con tu nombre y tu foto, y lo ven las personas que tienen acceso a ese muro. Si respondes el test o el formulario de Dream Team, tus respuestas quedan guardadas y las ve el equipo que acompaña el curso.
+
+Cada acción importante que alguien hace con tus datos —marcar tu asistencia, aprobar tu certificado, cambiar tu rol— queda registrada con la fecha y con quién la hizo. Ese registro existe para poder corregir errores y responder si algo se hizo mal.
+
+QUIÉN VE TUS DATOS
+
+El equipo pastoral y quien administra la aplicación ven la ficha completa de cada persona.
+
+Los demás cargos ven solo lo que necesitan: quien dirige un ministerio ve a la gente de su equipo y a quienes pidieron entrar en él; quien acompaña un paso del curso ve la asistencia de ese paso; quien sirve en un ministerio ve lo que su director le haya confiado.
+
+Tus datos no se venden, no se comparten con nadie fuera de la iglesia, y no se usan para publicidad. La aplicación se aloja en Supabase y Netlify, dos proveedores de servicios técnicos que almacenan la información por cuenta nuestra y no pueden usarla para otra cosa.
+
+SI ERES MENOR DE EDAD
+
+Para inscribirte por tu cuenta hay que tener al menos dieciocho años. Si la iglesia habilita la inscripción de menores, además de tus datos pedimos el nombre y el contacto de tu papá, mamá o representante, y su autorización expresa para que participes. Esos datos se usan solo para eso.
+
+TUS DERECHOS
+
+Puedes ver y corregir tus datos cuando quieras desde tu perfil, y también cambiar tu correo y tu contraseña.
+
+Puedes pedirnos que borremos tu cuenta y tus datos escribiéndonos desde la página de Contacto. Lo haremos, con una excepción que conviene que sepas: los registros de asistencia y los certificados ya emitidos se conservan, porque son el respaldo de que completaste el curso. Si prefieres que también se borren, dilo y lo hablamos.
+
+Puedes retirar tu consentimiento en cualquier momento. Eso significa cerrar tu cuenta, porque sin esos datos la aplicación no puede funcionar.
+
+CUÁNTO TIEMPO CONSERVAMOS TUS DATOS
+
+Mientras tu cuenta esté abierta. Si pides que la cerremos, borramos tu ficha; se conservan los certificados emitidos y el registro de asistencias, como se explicó arriba.
+
+CAMBIOS EN ESTA POLÍTICA
+
+Si cambiamos algo importante, lo avisaremos dentro de la aplicación. La fecha de la última actualización aparece al final.
+
+CÓMO CONTACTARNOS
+
+Escríbenos desde la página de Contacto de la aplicación o acércate al equipo pastoral en la iglesia.
+
+Última actualización: 31 de julio de 2026.
