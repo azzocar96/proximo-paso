@@ -157,6 +157,12 @@ export async function changePassword(_prev: FormState, formData: FormData): Prom
 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { error: 'No pudimos cambiar la contraseña. Intenta de nuevo.' };
+
+  // Si entró con una clave temporal, aquí se le quita la obligación. Se llama
+  // DESPUÉS de que Supabase confirmó el cambio, nunca antes.
+  const { error: flagError } = await supabase.rpc('fn_password_changed');
+  if (flagError) console.error('[fn_password_changed]', flagError.message);
+
   return { success: 'Contraseña actualizada. La próxima vez entra con la nueva.' };
 }
 
