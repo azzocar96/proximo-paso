@@ -4,3 +4,7 @@ node_modules/
 .env.local
 *.log
 .DS_Store
+
+# Nunca al repositorio: contrasenas temporales y borradores internos
+accesos-*.txt
+politica-de-privacidad*.txt
