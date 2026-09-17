@@ -168,6 +168,8 @@ export default async function Landing() {
       <footer className="px-6 py-8 text-center text-sm text-gray-400 space-y-1">
         <p>{church} · {address}</p>
         <p>
+          <Link href="/ayuda" className="underline hover:text-gray-600">Ayuda</Link>
+          {' · '}
           <Link href="/verificar" className="underline hover:text-gray-600">Verificar un certificado</Link>
           {' · '}
           <Link href="/privacidad" className="underline hover:text-gray-600">Privacidad</Link>

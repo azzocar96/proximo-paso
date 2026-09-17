@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/', '/login', '/registro', '/recuperar', '/restablecer', '/privacidad'];
+const PUBLIC_PATHS = ['/', '/login', '/registro', '/recuperar', '/restablecer', '/privacidad', '/ayuda'];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -21,7 +21,10 @@ export async function middleware(request: NextRequest) {
   );
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
-  const isPublic = PUBLIC_PATHS.includes(path) || path.startsWith('/verificar') || path.startsWith('/auth');
+  // `/autorizar/<token>` es público a propósito: quien lo abre es el padre o la
+  // madre del menor, que no tiene cuenta en la app y no tiene por qué tenerla.
+  const isPublic = PUBLIC_PATHS.includes(path) || path.startsWith('/verificar')
+    || path.startsWith('/auth') || path.startsWith('/autorizar');
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
@@ -39,6 +42,21 @@ export async function middleware(request: NextRequest) {
     if (perfil?.must_change_password) {
       const url = request.nextUrl.clone();
       url.pathname = '/cambiar-clave';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Menor sin el permiso de su representante: la cuenta existe pero no anda.
+  // La puerta de verdad está en la base (migración 027); esto es para que no
+  // choque contra un error, sino que aterrice en una explicación.
+  if (user && !isPublic && path !== '/autorizacion-pendiente' && path !== '/cambiar-clave') {
+    const { data: g } = await supabase
+      .from('profiles').select('guardian_authorization_status').eq('id', user.id).maybeSingle();
+    const estado = (g as { guardian_authorization_status?: string } | null)?.guardian_authorization_status;
+    if (estado === 'pending' || estado === 'revoked') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/autorizacion-pendiente';
       url.search = '';
       return NextResponse.redirect(url);
     }

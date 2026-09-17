@@ -17,8 +17,15 @@ export const registerSchema = z.object({
       const d = new Date(s + 'T00:00:00Z');
       return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
     }, 'Esa fecha no existe. Revísala, por favor.'),
-  guardian_name: z.string().trim().max(120).optional().or(z.literal('')),
-  guardian_contact: z.string().trim().max(120).optional().or(z.literal('')),
+  // Menores (regla de sep-2026): no basta "un nombre y un contacto". Hacen
+  // falta los CUATRO datos del representante, porque de ellos dependen dos
+  // cosas: que pueda autorizar la cuenta y que le lleguen los avisos.
+  // Aquí son opcionales porque quien es mayor de edad no los manda; la
+  // obligatoriedad real la imponen la server action y el trigger de la base.
+  guardian_first_name: z.string().trim().max(60).optional().or(z.literal('')),
+  guardian_last_name: z.string().trim().max(60).optional().or(z.literal('')),
+  guardian_email: z.string().trim().toLowerCase().max(160).optional().or(z.literal('')),
+  guardian_phone: z.string().trim().max(40).optional().or(z.literal('')),
   guardian_consent: z.boolean().optional(),
   // Fase 3f: "ya hice el curso, ya soy miembro". Es una SOLICITUD, no un
   // permiso: queda pendiente hasta que un director o el administrador la vean.

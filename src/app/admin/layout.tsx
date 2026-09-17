@@ -2,7 +2,7 @@ import Link from 'next/link';
 import {
   ArrowLeft, LayoutDashboard, BookOpen, CheckSquare, Mic, Users, FileText,
   HandHeart, GraduationCap, HeartHandshake, Megaphone, Inbox, BarChart3,
-  Filter, ScrollText, Settings,
+  Filter, ScrollText, Settings, ShieldCheck,
 } from 'lucide-react';
 import { requireStaff } from '@/lib/auth';
 
@@ -14,6 +14,7 @@ const ADMIN_NAV = [
   { href: '/admin/asistencia', label: 'Asistencia', Icon: CheckSquare, roles: ['coordinator', 'pastor', 'superadmin'] },
   { href: '/admin/oradores', label: 'Oradores', Icon: Mic, roles: ['pastor', 'superadmin'] },
   { href: '/admin/usuarios', label: 'Usuarios', Icon: Users, roles: ['pastor', 'superadmin'] },
+  { href: '/admin/representantes', label: 'Menores', Icon: ShieldCheck, roles: ['pastor', 'superadmin'] },
   { href: '/admin/evaluaciones', label: 'Test', Icon: FileText, roles: ['pastor', 'superadmin'] },
   { href: '/admin/dream-team', label: 'Dream Team', Icon: HandHeart, roles: ['pastor', 'superadmin'] },
   { href: '/admin/certificados', label: 'Certificados', Icon: GraduationCap, roles: ['pastor', 'superadmin'] },

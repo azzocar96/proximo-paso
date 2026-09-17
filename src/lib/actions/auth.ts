@@ -1,5 +1,6 @@
 'use server';
 import { createClient, createVerifyClient } from '@/lib/supabase/server';
+import { getCapabilities } from '@/lib/capabilities';
 import { registerSchema } from '@/lib/schemas';
 import { redirect } from 'next/navigation';
 
@@ -28,8 +29,10 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
     password: formData.get('password'),
     privacy_consent: formData.get('privacy_consent') === 'on' ? true : false,
     birth_date: formData.get('birth_date'),
-    guardian_name: formData.get('guardian_name') ?? '',
-    guardian_contact: formData.get('guardian_contact') ?? '',
+    guardian_first_name: formData.get('guardian_first_name') ?? '',
+    guardian_last_name: formData.get('guardian_last_name') ?? '',
+    guardian_email: formData.get('guardian_email') ?? '',
+    guardian_phone: formData.get('guardian_phone') ?? '',
     guardian_consent: formData.get('guardian_consent') === 'on' ? true : false,
     already_member: formData.get('already_member') === 'on' ? true : false,
     member_note: formData.get('member_note') ?? '',
@@ -55,8 +58,22 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
     if (!allowMinors) {
       return { error: `Para registrarte por tu cuenta necesitas tener al menos ${minAge} años. Escríbenos desde la página de contacto y te inscribimos junto a tu representante.` };
     }
-    if (!d.guardian_name || !d.guardian_contact || !d.guardian_consent) {
-      return { error: 'Como eres menor de edad, necesitamos el nombre y el contacto de tu representante, y su autorización.' };
+    // Los cuatro datos, uno por uno, para poder decir exactamente cuál falta.
+    if (!d.guardian_first_name) return { error: 'Falta el nombre de tu representante.' };
+    if (!d.guardian_last_name) return { error: 'Falta el apellido de tu representante.' };
+    if (!d.guardian_email) return { error: 'Falta el correo de tu representante. Ahí le llega el permiso que tiene que dar.' };
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.guardian_email)) {
+      return { error: 'El correo de tu representante no parece válido. Revísalo.' };
+    }
+    if (d.guardian_email === d.email) {
+      return { error: 'El correo de tu representante tiene que ser distinto del tuyo.' };
+    }
+    if (!d.guardian_phone) return { error: 'Falta el teléfono de tu representante.' };
+    if (d.guardian_phone.replace(/\D/g, '').length < 7) {
+      return { error: 'El teléfono de tu representante no parece válido. Revísalo.' };
+    }
+    if (!d.guardian_consent) {
+      return { error: 'Falta marcar que tu representante conoce y autoriza tu participación.' };
     }
   }
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -71,8 +88,10 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
         last_name: d.last_name,
         privacy_consent: d.privacy_consent,
         birth_date: d.birth_date,
-        guardian_name: d.guardian_name || null,
-        guardian_contact: d.guardian_contact || null,
+        guardian_first_name: d.guardian_first_name || null,
+        guardian_last_name: d.guardian_last_name || null,
+        guardian_email: d.guardian_email || null,
+        guardian_phone: d.guardian_phone || null,
         guardian_consent: d.guardian_consent ?? null,
         // Marcar esto NO hace a nadie miembro activo: deja la mano levantada
         // para que un director, el pastor o el administrador lo confirmen.
@@ -88,6 +107,15 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
   // La cuenta queda activa al instante (Supabase está en autoconfirmación
   // mientras la iglesia no tenga correo saliente propio). No mandamos a nadie
   // a buscar un correo de verificación que no va a llegar.
+  if (age < minAge) {
+    return {
+      success:
+        'Cuenta creada. Ahora falta un paso: tu representante tiene que autorizarla. ' +
+        'Le enviamos el permiso a ' + d.guardian_email + '. ' +
+        'Si no le llega, escríbenos y se lo hacemos llegar por WhatsApp. ' +
+        'Mientras tanto ya puedes iniciar sesión, pero no podrás inscribirte ni marcar asistencia.',
+    };
+  }
   return { success: 'Cuenta creada. Ya puedes iniciar sesión con tu correo y tu contraseña.' };
 }
 
@@ -100,6 +128,13 @@ export async function signOut() {
 export async function requestPasswordReset(_prev: FormState, formData: FormData): Promise<FormState> {
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   if (!email) return { error: 'Ingresa tu correo.' };
+  // Sin correo de salida esto no llega a ningún sitio. Antes decíamos "te
+  // enviamos un enlace" igualmente, que es mentirle a alguien que ya está
+  // teniendo un mal rato.
+  const caps = await getCapabilities();
+  if (!caps.email_outbound) {
+    return { error: 'Todavía no podemos enviar correos desde la app, así que ese enlace no te llegaría. Escríbele a la iglesia y te devolvemos el acceso en el momento.' };
+  }
   const supabase = createClient();
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
   await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${site}/auth/callback?next=/restablecer` });
@@ -163,6 +198,15 @@ export async function changePassword(_prev: FormState, formData: FormData): Prom
   const { error: flagError } = await supabase.rpc('fn_password_changed');
   if (flagError) console.error('[fn_password_changed]', flagError.message);
 
+  // Si es un menor, su representante se entera. De mejor esfuerzo: un aviso
+  // que falla no puede dejar a nadie sin cambiar su contraseña.
+  const { error: avisoError } = await supabase.rpc('fn_notify_guardian', {
+    p_user: user.id, p_kind: 'account_password_changed',
+    p_titulo: 'Cambió su contraseña',
+    p_detalle: 'Acaba de cambiar la contraseña de su cuenta en la app del curso. Si no fue él o ella, avísenos.',
+  });
+  if (avisoError) console.error('[fn_notify_guardian]', avisoError.message);
+
   return { success: 'Contraseña actualizada. La próxima vez entra con la nueva.' };
 }
 
@@ -187,6 +231,13 @@ export async function changeEmail(_prev: FormState, formData: FormData): Promise
   const bad = await verifyPassword(user.email, current);
   if (bad) return { error: bad };
 
+  // Cambiar el correo depende de un enlace de confirmación. Sin correo de
+  // salida, la persona se quedaría esperando para siempre un mensaje que nadie
+  // envió, y sin saber por qué.
+  const caps = await getCapabilities();
+  if (!caps.email_outbound) {
+    return { error: 'Todavía no podemos enviar el correo de confirmación, así que este cambio quedaría a medias. Escríbele a la iglesia con el correo nuevo y te lo cambiamos nosotros.' };
+  }
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
   const { error } = await supabase.auth.updateUser({ email }, { emailRedirectTo: `${site}/auth/callback?next=/perfil` });
   const ok = `Si ese correo está libre, te enviamos un enlace a ${email}. Ábrelo desde ahí para confirmar el cambio; hasta entonces sigues entrando con el actual.`;
@@ -198,6 +249,12 @@ export async function changeEmail(_prev: FormState, formData: FormData): Promise
     }
     return { error: 'No pudimos cambiar el correo. Intenta de nuevo.' };
   }
+  const { error: avisoError } = await supabase.rpc('fn_notify_guardian', {
+    p_user: user.id, p_kind: 'account_email_changed',
+    p_titulo: 'Pidió cambiar su correo',
+    p_detalle: `Pidió cambiar el correo de su cuenta a ${email}. El cambio solo se aplica si abre el enlace de confirmación.`,
+  });
+  if (avisoError) console.error('[fn_notify_guardian]', avisoError.message);
   return { success: ok };
 }
 

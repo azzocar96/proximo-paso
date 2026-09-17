@@ -22,6 +22,7 @@ export default function LoginPage() {
       <div className="text-sm text-center space-y-1">
         <p><Link className="text-brand-600 underline" href="/recuperar">Olvidé mi contraseña</Link></p>
         <p>¿No tienes cuenta? <Link className="text-brand-600 underline" href="/registro">Regístrate</Link></p>
+        <p className="text-gray-500">¿Algo no te funciona? <Link className="underline hover:text-gray-700" href="/ayuda">Mira la ayuda</Link></p>
       </div>
     </form>
   );

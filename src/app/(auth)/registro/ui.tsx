@@ -83,16 +83,36 @@ export function RegistroForm({ minAge, allowMinors }: { minAge: number; allowMin
           </p>
           <p className="text-xs text-gray-600">
             Como tienes menos de {minAge} años, necesitamos los datos de tu papá, mamá o representante,
-            y su permiso para que participes.
+            y su permiso para que participes. Los cuatro datos son obligatorios.
           </p>
-          <div><label className="label" htmlFor="guardian_name">Nombre completo del representante *</label>
-            <input className="input" id="guardian_name" name="guardian_name" required /></div>
-          <div><label className="label" htmlFor="guardian_contact">Teléfono o correo del representante *</label>
-            <input className="input" id="guardian_contact" name="guardian_contact" required /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="label" htmlFor="guardian_first_name">Su nombre *</label>
+              <input className="input" id="guardian_first_name" name="guardian_first_name" autoComplete="off" required /></div>
+            <div><label className="label" htmlFor="guardian_last_name">Su apellido *</label>
+              <input className="input" id="guardian_last_name" name="guardian_last_name" autoComplete="off" required /></div>
+          </div>
+          <div>
+            <label className="label" htmlFor="guardian_email">Su correo electrónico *</label>
+            <input className="input" id="guardian_email" name="guardian_email" type="email" autoComplete="off"
+              required aria-describedby="guardian_email_help" />
+            <p id="guardian_email_help" className="text-xs text-gray-600 mt-1">
+              Tiene que ser el correo de tu representante, no el tuyo. Ahí le llega el permiso que tiene que dar
+              para que tu cuenta funcione, y ahí le avisamos cuando pase algo importante.
+            </p>
+          </div>
+          <div>
+            <label className="label" htmlFor="guardian_phone">Su teléfono *</label>
+            <input className="input" id="guardian_phone" name="guardian_phone" type="tel" inputMode="tel"
+              autoComplete="off" required placeholder="407-555-0123" />
+          </div>
           <label className="flex items-start gap-3 text-sm">
             <input type="checkbox" name="guardian_consent" className="mt-1 w-5 h-5" required />
             <span>Mi representante conoce y autoriza mi participación en el curso. *</span>
           </label>
+          <p className="text-xs text-gray-600">
+            Tu cuenta se crea de una vez, pero queda esperando a que tu representante dé el permiso.
+            Hasta entonces no podrás inscribirte a un ciclo ni marcar asistencia.
+          </p>
         </section>
       )}
 
