@@ -54,7 +54,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </form>
       </aside>
       <div className="flex-1 min-w-0 flex flex-col">
-        <TopBar userId={user.id} iniciales={ini} nombre={nombre} inicial={contadores} />
+        <TopBar userId={user.id} iniciales={ini} nombre={nombre} email={user.email ?? ''} inicial={contadores} />
         <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6">{children}</main>
       </div>
       <BottomNav />

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Bell, Inbox, MessageSquare } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { Avatar } from '@/components/ui/Avatar';
+import { AvatarMenu } from './AvatarMenu';
 
 export type Contadores = { solicitudes: number; notificaciones: number; mensajes: number };
 
@@ -22,8 +22,8 @@ function Insignia({ n }: { n: number }) {
 // cambiar de pantalla, al volver a la pestaña, y en vivo cuando entra un aviso
 // o un mensaje (Realtime sobre las tablas de la 029). Si algo falla, la barra
 // simplemente no muestra números; nunca rompe la página.
-export function TopBar({ userId, iniciales, nombre, inicial }: {
-  userId: string; iniciales: string; nombre: string; inicial: Contadores;
+export function TopBar({ userId, iniciales, nombre, email, inicial }: {
+  userId: string; iniciales: string; nombre: string; email: string; inicial: Contadores;
 }) {
   const [c, setC] = useState<Contadores>(inicial);
   const path = usePathname();
@@ -87,9 +87,7 @@ export function TopBar({ userId, iniciales, nombre, inicial }: {
             </Link>
           );
         })}
-        <Link href="/perfil" aria-label="Mi perfil" title="Mi perfil" className="ml-1 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-          <Avatar texto={iniciales} />
-        </Link>
+        <AvatarMenu iniciales={iniciales} nombre={nombre} email={email} />
       </div>
     </header>
   );
