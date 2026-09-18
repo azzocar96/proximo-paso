@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { getSettings, str } from '@/lib/settings';
 
 // Siempre en vivo: la caché de 60 s de getSettings ya da la velocidad; lo que
@@ -15,6 +17,9 @@ export default async function PrivacidadPage() {
   }
   return (
     <main className="max-w-2xl mx-auto px-6 py-12">
+      <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6">
+        <ArrowLeft className="w-4 h-4" aria-hidden /> Volver
+      </Link>
       <h1 className="text-2xl font-bold mb-4">Política de privacidad</h1>
       <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-gray-700">{text}</div>
       <p className="mt-8 text-sm text-gray-500">

@@ -1,6 +1,7 @@
 'use client';
 import { useFormState, useFormStatus } from 'react-dom';
 import { updatePassword } from '@/lib/actions/auth';
+import Link from 'next/link';
 import { Alert } from '@/components/ui/Alert';
 
 function Submit() {
@@ -18,6 +19,9 @@ export default function RestablecerPage() {
       <div><label className="label" htmlFor="confirm">Confirmar contraseña</label>
         <input className="input" id="confirm" name="confirm" type="password" minLength={8} required /></div>
       <Submit />
+      <p className="text-center text-sm text-gray-500">
+        <Link href="/recuperar" className="underline">Pedir otro enlace</Link> · <Link href="/login" className="underline">Iniciar sesión</Link>
+      </p>
     </form>
   );
 }

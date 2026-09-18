@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth';
 import { getSettings, str } from '@/lib/settings';
 import { signOut } from '@/lib/actions/auth';
 import { vigilar } from '@/lib/supabase/vigilar';
+import { Comprobar } from './comprobar';
 
 export const metadata = { title: 'Esperando la autorización' };
 export const dynamic = 'force-dynamic';
@@ -61,6 +62,7 @@ export default async function AutorizacionPendientePage() {
         quien la atiende: puede registrarte la asistencia a mano y no pierdes nada.
       </p>
 
+      {!revocado && <Comprobar />}
       <form action={signOut}>
         <button className="btn-secondary w-full inline-flex items-center justify-center gap-2">
           <LogOut className="w-4 h-4" aria-hidden /> Cerrar sesión

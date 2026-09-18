@@ -2,6 +2,7 @@
 import { useState, useTransition } from 'react';
 import { ShieldCheck, Bell, MapPin, Lock } from 'lucide-react';
 import { authorizeGuardian } from '@/lib/actions/guardian';
+import Link from 'next/link';
 import { Alert } from '@/components/ui/Alert';
 
 export function AutorizarForm({ token, menor, iglesia }: { token: string; menor: string; iglesia: string }) {
@@ -16,7 +17,9 @@ export function AutorizarForm({ token, menor, iglesia }: { token: string; menor:
         <Alert kind="success">{estado.success}</Alert>
         <p className="text-sm text-gray-600">
           Ya puedes cerrar esta página. Te escribiremos a este mismo correo cuando pase algo importante.
+          Si {menor} está contigo, ya puede entrar a la app con su correo y su contraseña.
         </p>
+        <Link href="/login" className="btn-primary w-full">Ir a la app</Link>
       </>
     );
   }

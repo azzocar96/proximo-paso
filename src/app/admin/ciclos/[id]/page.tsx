@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireStaff } from '@/lib/auth';
@@ -22,6 +23,7 @@ export default async function CicloDetailPage({ params }: { params: { id: string
   ]);
   return (
     <div className="space-y-6">
+      <Link href="/admin/ciclos" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800"><ArrowLeft className="w-4 h-4" aria-hidden /> Volver a ciclos</Link>
       <h1 className="text-2xl font-extrabold">{cycle.name}</h1>
 
       <section className="space-y-3">

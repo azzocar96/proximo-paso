@@ -1,5 +1,6 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Mail, Phone, Cake, MapPin, AlertTriangle, Lock, CheckCircle2, CircleDot, Circle } from 'lucide-react';
+import { Mail, Phone, Cake, MapPin, AlertTriangle, Lock, CheckCircle2, CircleDot, Circle, ArrowLeft } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
 import {
   fmtDate, calcAge, ENROLLMENT_LABEL, MINISTRY_ASSIGN_LABEL, CERT_LABEL,
@@ -47,6 +48,7 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="space-y-5">
+      <Link href="/admin/usuarios" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800"><ArrowLeft className="w-4 h-4" aria-hidden /> Volver a usuarios</Link>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <h1 className="text-2xl font-extrabold">{profile.first_name} {profile.middle_name ?? ''} {profile.last_name}</h1>
         <EscribirMensaje id={profile.id} nombre={profile.first_name} />

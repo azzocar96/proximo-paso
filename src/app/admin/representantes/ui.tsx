@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { ShieldCheck, Copy, Check, Mail, AlertTriangle, RefreshCw } from 'lucide-react';
 import { adminGrantGuardian, adminRevokeGuardian, adminGuardianLink } from '@/lib/actions/guardian';
@@ -30,6 +31,8 @@ export function RepresentantesUI({ pendientes, bandeja, site }: {
   const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
   const [links, setLinks] = useState<Record<string, string>>({});
   const [copiado, setCopiado] = useState<string | null>(null);
+  // Tras autorizar, la persona desaparece de la lista: se deja a mano el camino a su ficha.
+  const [ultimo, setUltimo] = useState<{ id: string; nombre: string } | null>(null);
   const [cargando, startTransition] = useTransition();
 
   const copiar = async (id: string, texto: string) => {
@@ -55,7 +58,12 @@ export function RepresentantesUI({ pendientes, bandeja, site }: {
       </header>
 
       {msg?.error && <Alert kind="error">{msg.error}</Alert>}
-      {msg?.success && <Alert kind="success">{msg.success}</Alert>}
+      {msg?.success && (
+        <Alert kind="success">
+          {msg.success}{' '}
+          {ultimo && <Link href={`/admin/participantes/${ultimo.id}`} className="underline font-semibold">Ver la ficha de {ultimo.nombre}</Link>}
+        </Alert>
+      )}
 
       <section className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-sm text-gray-700 space-y-1">
         <p className="font-semibold inline-flex items-center gap-2 text-amber-900">
@@ -79,6 +87,7 @@ export function RepresentantesUI({ pendientes, bandeja, site }: {
 
         {pendientes.map((p) => (
           <article key={p.id} className="card space-y-3">
+            <Link href={`/admin/participantes/${p.id}`} className="text-xs text-brand-700 underline">Ver ficha</Link>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <p className="font-semibold">{p.menor}</p>
@@ -119,7 +128,11 @@ export function RepresentantesUI({ pendientes, bandeja, site }: {
                     'Autorizar a mano.\n\n¿Con quién hablaste y cómo confirmaste el permiso? Queda registrado.'
                   );
                   if (!motivo) return;
-                  startTransition(async () => setMsg(await adminGrantGuardian(p.id, motivo)));
+                  startTransition(async () => {
+                    const r = await adminGrantGuardian(p.id, motivo);
+                    setMsg(r?.error ? r : { success: `${p.menor} ya está autorizado. Puedes seguir en su ficha o quedarte aquí.` });
+                    if (!r?.error) setUltimo({ id: p.id, nombre: p.menor });
+                  });
                 }}
               >
                 Autorizar a mano

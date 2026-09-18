@@ -42,6 +42,7 @@ export default async function AutorizarPage({ params }: { params: { token: strin
               <p className="text-sm text-gray-600">
                 La cuenta de {r.menor} ya tiene tu permiso. No hay nada más que hacer.
               </p>
+              <Link href="/login" className="btn-primary w-full">Ir a la app</Link>
             </>
           )}
 
@@ -62,8 +63,10 @@ export default async function AutorizarPage({ params }: { params: { token: strin
             </>
           )}
 
-          <p className="text-xs text-gray-500 pt-2 border-t border-gray-100">
+          <p className="text-xs text-gray-500 pt-2 border-t border-gray-100 flex flex-wrap gap-x-4 gap-y-1">
             <Link href="/privacidad" className="underline">Qué datos guardamos y para qué</Link>
+            <Link href="/ayuda" className="underline">Ayuda</Link>
+            <Link href="/" className="underline">Página principal</Link>
           </p>
         </div>
       </div>

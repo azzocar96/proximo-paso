@@ -1,5 +1,6 @@
 'use client';
-import { QrCode, Maximize } from 'lucide-react';
+import Link from 'next/link';
+import { QrCode, Maximize, ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { openAttendance, closeAttendance } from '@/lib/actions/admin';
@@ -90,6 +91,11 @@ export function QrScreen({ session, initialToken, siteUrl }: {
     <div ref={wrapRef} className={full ? 'fixed inset-0 z-50 bg-white overflow-auto p-6' : 'space-y-5'}>
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
+          {!full && (
+            <Link href={`/admin/ciclos/${session.cycle_id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-1">
+              <ArrowLeft className="w-4 h-4" aria-hidden /> Volver al ciclo
+            </Link>
+          )}
           <h1 className="text-2xl font-extrabold">{session.course_cycles?.name} · Paso {session.step_number}</h1>
           <p className="text-sm text-gray-500">{session.name}</p>
         </div>
