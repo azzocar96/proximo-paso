@@ -8,6 +8,11 @@ import type { FormState } from '@/lib/actions/auth';
 
 function friendly(error: { code?: string; message: string }): string {
   if (error.code === 'P0001') return error.message;
+  // La función todavía no existe en la base (migración pendiente de aplicar):
+  // se dice tal cual, en vez de un "algo salió mal" que no ayuda a nadie.
+  if (error.code === 'PGRST202' || error.code === '42883') {
+    return 'Esta acción todavía no está disponible: falta aplicar un cambio en la base. Avísale a Jesús.';
+  }
   console.error('[bandejas]', error.code, error.message);
   return 'No pudimos completar la acción. Vuelve a intentarlo en un minuto.';
 }
@@ -45,4 +50,13 @@ export async function responderConversacion(_prev: FormState, formData: FormData
   revalidatePath(`/mensajes/${id}`);
   revalidatePath('/mensajes');
   return { success: 'Enviado.' };
+}
+
+export async function cerrarConversacion(id: string, reabrir = false): Promise<FormState> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc('close_conversation', { p_conv: id, p_reabrir: reabrir });
+  if (error) return { error: friendly(error) };
+  revalidatePath(`/mensajes/${id}`);
+  revalidatePath('/mensajes');
+  return { success: reabrir ? 'Conversación reabierta.' : 'Conversación cerrada.' };
 }

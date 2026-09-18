@@ -16,10 +16,16 @@ declare
   v_ok    uuid;
   v_msg   text;
 begin
-  -- Persona adulta, ya con sesión (perfil directo: no pasa por auth.users).
-  insert into profiles (id, first_name, last_name, email, birth_date, privacy_consent)
-  values (v_user, 'Prueba', 'Tardía', 'prueba.tardia.' || v_user || '@example.invalid', date '1990-01-01', true);
-  insert into user_roles (user_id, role) values (v_user, 'participant') on conflict do nothing;
+  -- Persona adulta creada por el camino real (auth.users → handle_new_user):
+  -- profiles.id es clave foránea a auth.users, no se puede insertar directo.
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
+                          email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+  values (v_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+          'prueba.tardia.' || v_user || '@example.invalid', '', now(),
+          '{"provider":"email","providers":["email"]}'::jsonb,
+          jsonb_build_object('first_name', 'Prueba', 'last_name', 'Tardía', 'phone', '4070000002',
+            'birth_date', '1990-01-01', 'privacy_consent', true),
+          now(), now());
 
   -- Ciclo que YA empezó: inscripciones formalmente abiertas, pero el Paso 1 fue ayer.
   insert into course_cycles (name, status, registration_start, registration_end, location_name)

@@ -22,8 +22,8 @@ function Insignia({ n }: { n: number }) {
 // cambiar de pantalla, al volver a la pestaña, y en vivo cuando entra un aviso
 // o un mensaje (Realtime sobre las tablas de la 029). Si algo falla, la barra
 // simplemente no muestra números; nunca rompe la página.
-export function TopBar({ userId, iniciales, nombre, email, inicial }: {
-  userId: string; iniciales: string; nombre: string; email: string; inicial: Contadores;
+export function TopBar({ userId, iniciales, nombre, email, foto, inicial }: {
+  userId: string; iniciales: string; nombre: string; email: string; foto?: string | null; inicial: Contadores;
 }) {
   const [c, setC] = useState<Contadores>(inicial);
   const path = usePathname();
@@ -87,7 +87,7 @@ export function TopBar({ userId, iniciales, nombre, email, inicial }: {
             </Link>
           );
         })}
-        <AvatarMenu iniciales={iniciales} nombre={nombre} email={email} />
+        <AvatarMenu iniciales={iniciales} nombre={nombre} email={email} foto={foto} />
       </div>
     </header>
   );

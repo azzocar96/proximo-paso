@@ -8,7 +8,7 @@ import { Avatar } from '@/components/ui/Avatar';
 // Tocar el avatar abre el menú de la cuenta. Es la única salida en el
 // teléfono (la barra inferior no tiene "Cerrar sesión") y en el escritorio
 // evita bajar hasta el final de la lateral.
-export function AvatarMenu({ iniciales, nombre, email }: { iniciales: string; nombre: string; email: string }) {
+export function AvatarMenu({ iniciales, nombre, email, foto }: { iniciales: string; nombre: string; email: string; foto?: string | null }) {
   const [abierto, setAbierto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -31,7 +31,7 @@ export function AvatarMenu({ iniciales, nombre, email }: { iniciales: string; no
     <div ref={ref} className="relative ml-1">
       <button type="button" onClick={() => setAbierto((v) => !v)} aria-haspopup="menu" aria-expanded={abierto} aria-label="Menú de tu cuenta"
         className="inline-flex items-center gap-1 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-        <Avatar texto={iniciales} />
+        <Avatar texto={iniciales} foto={foto} />
         <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${abierto ? 'rotate-180' : ''}`} aria-hidden />
       </button>
       {abierto && (

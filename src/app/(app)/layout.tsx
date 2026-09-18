@@ -1,27 +1,21 @@
 import { LogOut } from 'lucide-react';
 import { SideNav, BottomNav } from '@/components/shell/AppNav';
-import { TopBar, type Contadores } from '@/components/shell/TopBar';
-import { iniciales } from '@/components/ui/Avatar';
+import { TopBar } from '@/components/shell/TopBar';
+import { datosDeLaBarra } from '@/lib/shell';
 import { requireUser } from '@/lib/auth';
 import { signOut } from '@/lib/actions/auth';
 import { vigilar } from '@/lib/supabase/vigilar';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user } = await requireUser();
-  const [{ data: role }, { data: mySpeakerSteps }, { data: myLedMinistries }, { data: nav, error: navError }, perfilRes, contRes] =
+  const [{ data: role }, { data: mySpeakerSteps }, { data: myLedMinistries }, { data: nav, error: navError }, barra] =
     await Promise.all([
       supabase.rpc('fn_role'),
       supabase.from('step_speakers').select('step_number').eq('user_id', user.id),
       supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
       supabase.rpc('fn_my_nav'),
-      supabase.from('profiles').select('first_name,last_name').eq('id', user.id).maybeSingle(),
-      supabase.rpc('fn_my_counters'),
+      datosDeLaBarra(supabase, user),
     ]);
-  if (perfilRes.error) console.error('[app/layout/profiles]', perfilRes.error.message);
-  if (contRes.error) console.error('[app/layout/fn_my_counters]', contRes.error.message);
-  const contadores: Contadores = (contRes.data as Contadores | null) ?? { solicitudes: 0, notificaciones: 0, mensajes: 0 };
-  const nombre = perfilRes.data?.first_name || 'bienvenido';
-  const ini = iniciales(perfilRes.data?.first_name, perfilRes.data?.last_name);
   // Fase 3g: el servidor de un ministerio no es director ni orador, pero puede
   // tener responsabilidades reales (mostrar el QR, confirmar asistencias).
   const { data: servantRoles } = await vigilar('app/(app)/layout/fn_my_servant_roles', supabase.rpc('fn_my_servant_roles'));
@@ -54,7 +48,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </form>
       </aside>
       <div className="flex-1 min-w-0 flex flex-col">
-        <TopBar userId={user.id} iniciales={ini} nombre={nombre} email={user.email ?? ''} inicial={contadores} />
+        <TopBar {...barra} />
         <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6">{children}</main>
       </div>
       <BottomNav />

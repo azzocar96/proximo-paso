@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormState, useFormStatus } from 'react-dom';
-import { changePassword } from '@/lib/actions/auth';
+import { changePassword, signOut } from '@/lib/actions/auth';
 import { Alert } from '@/components/ui/Alert';
 
 function Submit() {
@@ -14,7 +14,7 @@ function Submit() {
   );
 }
 
-export function CambiarClaveForm({ nombre }: { nombre: string }) {
+export function CambiarClaveForm({ nombre, contacto }: { nombre: string; contacto?: { phone?: string; email?: string } }) {
   const [state, action] = useFormState(changePassword, null);
   const router = useRouter();
 
@@ -56,6 +56,15 @@ export function CambiarClaveForm({ nombre }: { nombre: string }) {
       </div>
 
       <Submit />
+      {/* Salida para quien llegó aquí sin la clave temporal a mano: no se queda atrapado. */}
+      <div className="pt-3 border-t border-gray-100 text-xs text-gray-500 space-y-2">
+        <p>
+          ¿No tienes la contraseña temporal? Escríbenos y te la pasamos otra vez
+          {contacto?.phone ? <>: <b>{contacto.phone}</b></> : null}
+          {contacto?.email ? <> · {contacto.email}</> : null}.
+        </p>
+        <button type="button" onClick={() => signOut()} className="underline hover:text-gray-800">Cerrar sesión y volver luego</button>
+      </div>
     </form>
   );
 }

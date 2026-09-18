@@ -78,5 +78,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|.*\\.(?:png|jpg|svg|webp)$).*)'],
+  // `.netlify` fuera: ahí vive la función que mantiene despierta la base, y el
+  // middleware la estaba devolviendo a /login.
+  matcher: ['/((?!_next/static|_next/image|\\.netlify|favicon.ico|icon.svg|manifest.webmanifest|.*\\.(?:png|jpg|svg|webp)$).*)'],
 };

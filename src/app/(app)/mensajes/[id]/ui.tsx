@@ -1,10 +1,10 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Send } from 'lucide-react';
-import { responderConversacion } from '@/lib/actions/bandejas';
+import { ArrowLeft, Send, CheckCircle2, RotateCcw } from 'lucide-react';
+import { responderConversacion, cerrarConversacion } from '@/lib/actions/bandejas';
 import { createClient } from '@/lib/supabase/client';
 import { Alert } from '@/components/ui/Alert';
 import { Avatar, iniciales } from '@/components/ui/Avatar';
@@ -25,6 +25,8 @@ function Enviar() {
 
 export function HiloUI({ hilo, userId }: { hilo: Hilo; userId: string }) {
   const [state, action] = useFormState(responderConversacion, null);
+  const [cerrando, startCerrar] = useTransition();
+  const [errCerrar, setErrCerrar] = useState<string | null>(null);
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const finRef = useRef<HTMLDivElement>(null);
@@ -50,11 +52,24 @@ export function HiloUI({ hilo, userId }: { hilo: Hilo; userId: string }) {
           <ArrowLeft className="w-5 h-5" aria-hidden />
         </Link>
         <Avatar texto={iniciales(a, b)} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="font-semibold truncate">{hilo.con_quien}</p>
           <p className="text-sm text-gray-500 truncate">{hilo.subject}</p>
         </div>
+        {/* Cerrar es del lado de la iglesia: quien escribe no cierra su propio tema. */}
+        {!hilo.soy_la_persona && (
+          <button type="button" disabled={cerrando} onClick={() => startCerrar(async () => {
+            const r = await cerrarConversacion(hilo.id, Boolean(hilo.closed_at));
+            setErrCerrar(r?.error ?? null);
+            if (!r?.error) router.refresh();
+          })} className="btn-secondary !py-1.5 !px-3 text-xs shrink-0 inline-flex items-center gap-1.5">
+            {hilo.closed_at
+              ? <><RotateCcw className="w-3.5 h-3.5" aria-hidden /> Reabrir</>
+              : <><CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Dar por atendido</>}
+          </button>
+        )}
       </div>
+      {errCerrar && <Alert kind="error">{errCerrar}</Alert>}
 
       <ol className="space-y-2">
         {hilo.mensajes.map((m) => (
