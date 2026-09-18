@@ -37,7 +37,14 @@ export function TopBar({ userId, iniciales, nombre, inicial }: {
     } catch (e) { console.error('[topbar]', (e as Error)?.message ?? e); }
   }, []);
 
-  useEffect(() => { refrescar(); }, [path, refrescar]);
+  // Al cambiar de pantalla se refresca dos veces: ya, y un segundo después,
+  // porque abrir un hilo o la campana marca como leído DURANTE el render del
+  // servidor y la primera lectura puede llegar antes de que eso ocurra.
+  useEffect(() => {
+    refrescar();
+    const t = window.setTimeout(refrescar, 1200);
+    return () => window.clearTimeout(t);
+  }, [path, refrescar]);
 
   useEffect(() => {
     const onFocus = () => { if (document.visibilityState === 'visible') refrescar(); };

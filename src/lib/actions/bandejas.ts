@@ -16,7 +16,8 @@ export async function marcarNotificacionesLeidas(ids?: string[]): Promise<FormSt
   const supabase = createClient();
   const { error } = await supabase.rpc('mark_notifications_read', { p_ids: ids ?? null });
   if (error) return { error: friendly(error) };
-  revalidatePath('/notificaciones');
+  // A propósito NO se revalida /notificaciones: la lista recién abierta debe
+  // seguir mostrando qué era nuevo; el contador de la barra sí se limpia.
   return { success: 'Listo.' };
 }
 
