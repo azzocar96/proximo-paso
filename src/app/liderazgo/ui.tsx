@@ -1,7 +1,8 @@
 'use client';
 import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Pencil, UserPlus, HandHeart } from 'lucide-react';
+import { Pencil, UserPlus, HandHeart, MessageSquarePlus } from 'lucide-react';
+import { NuevaConversacion } from '@/app/(app)/mensajes/ui';
 import {
   acceptMinistryJoin, acceptMemberRequest, rejectMemberRequest, removeMinistryMember,
   updateMinistryProfile, addMinistryMember,
@@ -92,23 +93,36 @@ export function MemberRow({ member }: {
 }) {
   const [msg, setMsg] = useState<{ error?: string; success?: string } | null>(null);
   const [pending, start] = useTransition();
+  const [escribir, setEscribir] = useState(false);
   const router = useRouter();
   const p = member.profiles;
   return (
-    <li className="py-3 flex items-center justify-between gap-3 text-sm">
-      {msg?.error && <Alert kind="error">{msg.error}</Alert>}
-      <span className="min-w-0">
-        <span className="font-medium">{p?.first_name} {p?.last_name}</span>{' '}
-        <span className="text-xs text-gray-400">{p?.email}</span>
-        <span className="block text-xs text-gray-500">{member.ministries?.name}</span>
-      </span>
-      <button className="text-red-600 underline text-xs shrink-0" disabled={pending} onClick={() => {
-        const motivo = prompt('Motivo para dar de baja (obligatorio, queda en auditoría). La persona vuelve a la comunidad general:');
-        if (!motivo) return;
-        start(async () => { setMsg(await removeMinistryMember(member.ministry_id, member.user_id, motivo)); router.refresh(); });
-      }}>
-        Dar de baja
-      </button>
+    <li className="py-3 text-sm space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        {msg?.error && <Alert kind="error">{msg.error}</Alert>}
+        <span className="min-w-0">
+          <span className="font-medium">{p?.first_name} {p?.last_name}</span>{' '}
+          <span className="text-xs text-gray-400">{p?.email}</span>
+          <span className="block text-xs text-gray-500">{member.ministries?.name}</span>
+        </span>
+        <span className="flex items-center gap-3 shrink-0">
+          <button type="button" className="text-brand-700 text-xs inline-flex items-center gap-1" onClick={() => setEscribir((v) => !v)}>
+            <MessageSquarePlus className="w-3.5 h-3.5" aria-hidden /> Escribir
+          </button>
+          <button className="text-red-600 underline text-xs" disabled={pending} onClick={() => {
+            const motivo = prompt('Motivo para dar de baja (obligatorio, queda en auditoría). La persona vuelve a la comunidad general:');
+            if (!motivo) return;
+            start(async () => { setMsg(await removeMinistryMember(member.ministry_id, member.user_id, motivo)); router.refresh(); });
+          }}>
+            Dar de baja
+          </button>
+        </span>
+      </div>
+      {escribir && (
+        // Hilo de ámbito "ministerio": lo ven la persona, este director y la administración.
+        <NuevaConversacion ministerios={[]} inscrito={false} onCerrar={() => setEscribir(false)}
+          paraMiembro={{ id: member.user_id, nombre: p?.first_name ?? 'la persona', scope: 'ministry', ministry_id: member.ministry_id }} />
+      )}
     </li>
   );
 }

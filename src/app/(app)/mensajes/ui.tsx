@@ -26,7 +26,8 @@ function Enviar({ label }: { label: string }) {
 /** Formulario para abrir un hilo. Sin `paraMiembro`, lo abre la propia persona. */
 export function NuevaConversacion({ ministerios, inscrito, paraMiembro, onCerrar }: {
   ministerios: { id: string; nombre: string }[]; inscrito: boolean;
-  paraMiembro?: { id: string; nombre: string }; onCerrar?: () => void;
+  paraMiembro?: { id: string; nombre: string; scope?: 'church' | 'ministry' | 'step'; ministry_id?: string; step_number?: number };
+  onCerrar?: () => void;
 }) {
   const [state, action] = useFormState(abrirConversacion, null);
   const [destino, setDestino] = useState('church');
@@ -53,9 +54,9 @@ export function NuevaConversacion({ ministerios, inscrito, paraMiembro, onCerrar
           </select>
         </label>
       )}
-      <input type="hidden" name="scope" value={paraMiembro ? 'church' : scope} />
-      <input type="hidden" name="ministry_id" value={ministry} />
-      <input type="hidden" name="step_number" value={step} />
+      <input type="hidden" name="scope" value={paraMiembro ? (paraMiembro.scope ?? 'church') : scope} />
+      <input type="hidden" name="ministry_id" value={paraMiembro ? (paraMiembro.ministry_id ?? '') : ministry} />
+      <input type="hidden" name="step_number" value={paraMiembro ? (paraMiembro.step_number ?? '') : step} />
       <label className="block text-sm">
         <span className="text-gray-600">Asunto</span>
         <input name="subject" required maxLength={140} className="input mt-1" placeholder="En pocas palabras, de qué se trata" />

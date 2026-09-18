@@ -23,7 +23,8 @@ export default async function MensajesPage() {
     <MensajesUI
       conversaciones={(convRes.data as Conversacion[] | null) ?? []}
       ministerios={ministerios}
-      inscrito={Boolean(enrollment)}
+      // Escribirle al orador de un paso solo tiene sentido mientras se está cursando.
+      inscrito={Boolean(enrollment) && !['certified', 'completed'].includes(String(enrollment?.status))}
       esEquipo={esEquipo}
     />
   );
