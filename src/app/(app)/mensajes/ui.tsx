@@ -69,18 +69,21 @@ export function NuevaConversacion({ ministerios, inscrito, paraMiembro, onCerrar
   );
 }
 
-export function MensajesUI({ conversaciones, ministerios, inscrito }: {
-  conversaciones: Conversacion[]; ministerios: { id: string; nombre: string }[]; inscrito: boolean;
+export function MensajesUI({ conversaciones, ministerios, inscrito, esEquipo = false }: {
+  conversaciones: Conversacion[]; ministerios: { id: string; nombre: string }[]; inscrito: boolean; esEquipo?: boolean;
 }) {
-  const [nuevo, setNuevo] = useState(conversaciones.length === 0);
+  const [nuevo, setNuevo] = useState(!esEquipo && conversaciones.length === 0);
   return (
     <div className="space-y-4">
       <div className="flex items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold">Mensajes</h1>
-          <p className="text-sm text-gray-500">Tu conversación con la iglesia, tu ministerio y los oradores.</p>
+          <p className="text-sm text-gray-500">
+            {esEquipo ? 'Lo que la gente le escribe a la iglesia. Para escribirle a alguien, ábrelo desde su ficha en Panel admin → Usuarios.'
+                      : 'Tu conversación con la iglesia, tu ministerio y los oradores.'}
+          </p>
         </div>
-        {!nuevo && (
+        {!nuevo && !esEquipo && (
           <button onClick={() => setNuevo(true)} className="btn-primary inline-flex items-center gap-2 shrink-0">
             <MessageSquarePlus className="w-4 h-4" aria-hidden /> Nuevo
           </button>
@@ -88,7 +91,8 @@ export function MensajesUI({ conversaciones, ministerios, inscrito }: {
       </div>
       {nuevo && <NuevaConversacion ministerios={ministerios} inscrito={inscrito} onCerrar={conversaciones.length ? () => setNuevo(false) : undefined} />}
       {conversaciones.length === 0 ? (
-        !nuevo && <Vacio Icon={MessageSquare} titulo="Sin conversaciones" texto="Cuando escribas o te escriban, el hilo aparece aquí." />
+        !nuevo && <Vacio Icon={MessageSquare} titulo="Sin conversaciones"
+          texto={esEquipo ? 'Cuando alguien le escriba a la iglesia, o tú le escribas desde su ficha, el hilo aparece aquí.' : 'Cuando escribas o te escriban, el hilo aparece aquí.'} />
       ) : (
         <ul className="card divide-y divide-gray-100 !p-0 overflow-hidden">
           {conversaciones.map((c) => {

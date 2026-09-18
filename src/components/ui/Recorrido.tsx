@@ -11,7 +11,7 @@ export function Recorrido({ progress }: { progress: Progress }) {
       key: `p${s.step}`, label: `Paso ${s.step}`,
       estado: s.attended ? 'hecho' : s.date === hoy && s.status === 'open' ? 'hoy' : s.unlocked ? 'proximo' : 'bloqueado',
     })),
-    { key: 'cert', label: 'Certificado', estado: progress.eligible_for_certificate ? 'hoy' : progress.steps_done >= 4 ? 'proximo' : 'bloqueado' },
+    { key: 'cert', label: 'Certificado', estado: progress.status === 'certified' ? 'hecho' : progress.eligible_for_certificate ? 'hoy' : progress.steps_done >= 4 ? 'proximo' : 'bloqueado' },
   ];
   return (
     <ol className="flex items-start" aria-label="Recorrido del curso">

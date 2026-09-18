@@ -35,6 +35,7 @@ export function progressPercent(p: Progress): number {
 }
 
 export function nextActivity(p: Progress): string {
+  if (p.status === 'certified') return 'Curso completado: ya tienes tu certificado';
   const next = p.steps.find((s) => !s.attended);
   if (p.steps_done >= 3 && !p.test_done) return 'Completar el test de personalidad';
   if (p.steps_done >= 3 && !p.dream_team_done) return 'Completar el formulario Dream Team';

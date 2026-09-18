@@ -117,7 +117,9 @@ export default async function InicioPage() {
           )}
           <div className="flex gap-2 flex-wrap">
             <Link href="/progreso" className="btn-secondary text-sm !py-2">Ver mi progreso</Link>
-            <Link href="/proxima-clase" className="btn-secondary text-sm !py-2">Próxima clase</Link>
+            {enrollment.status === 'certified'
+              ? <Link href="/certificado" className="btn-primary text-sm !py-2">Ver mi certificado</Link>
+              : <Link href="/proxima-clase" className="btn-secondary text-sm !py-2">Próxima clase</Link>}
           </div>
         </section>
       ) : (
