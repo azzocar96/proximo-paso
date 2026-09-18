@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api
+Disallow: /autorizar
+Disallow: /a/
+Sitemap: https://proximo-paso.netlify.app/sitemap.xml

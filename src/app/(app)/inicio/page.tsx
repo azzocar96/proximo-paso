@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth';
 import { getActiveEnrollment, getProgress, progressPercent, nextActivity } from '@/lib/course';
 import { fmtDate, fmtTime, ENROLLMENT_LABEL } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { EnrollButton } from '@/app/(app)/curso/ui';
 
 export const metadata = { title: 'Inicio' };
 export default async function InicioPage() {
@@ -19,6 +20,24 @@ export default async function InicioPage() {
     && (myMinistry ?? []).length === 0 && (myPending ?? []).length === 0;
   const enrollment = await getActiveEnrollment(supabase, user.id);
   const progress = enrollment ? await getProgress(supabase, enrollment.id) : null;
+  // Sin inscripción: traer el ciclo abierto para que se inscriba AQUÍ, sin
+  // buscarlo. Es el punto donde más gente se queda a medias: crea la cuenta y
+  // cree que ya está inscrita.
+  let ciclosAbiertos: { id: string; name: string; location_name: string | null; primera: string | null }[] = [];
+  if (!enrollment) {
+    const { data: abiertos } = await supabase.from('course_cycles')
+      .select('id,name,location_name,registration_end,course_sessions(session_date,step_number)')
+      .eq('status', 'registration_open').is('deleted_at', null).order('registration_start');
+    const hoy = new Date().toISOString().slice(0, 10);
+    ciclosAbiertos = (abiertos ?? [])
+      .filter((c: any) => !c.registration_end || c.registration_end > new Date().toISOString())
+      .map((c: any) => {
+        const fechas = (c.course_sessions ?? []).map((x: any) => x.session_date).filter(Boolean).sort();
+        return { id: c.id, name: c.name, location_name: c.location_name, primera: fechas[0] ?? null };
+      })
+      // Un ciclo cuya primera clase ya pasó no se ofrece: la base lo rechazaría igual.
+      .filter((c) => !c.primera || c.primera >= hoy);
+  }
   const { data: ann } = await supabase.from('announcements').select('id,title,content,publish_at')
     .order('priority', { ascending: false }).order('publish_at', { ascending: false }).limit(1).maybeSingle();
 
@@ -88,13 +107,42 @@ export default async function InicioPage() {
           </div>
         </section>
       ) : (
-        <section className="card text-center space-y-3 py-8">
-          <span className="mx-auto flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-50 text-brand-600">
-            <BookOpen className="w-7 h-7" aria-hidden />
-          </span>
-          <h2 className="font-bold text-lg">Aún no estás inscrito en un ciclo</h2>
-          <p className="text-gray-600 text-sm">Inscríbete en el próximo ciclo del curso para comenzar.</p>
-          <Link href="/curso" className="btn-primary inline-flex">Ver ciclos disponibles</Link>
+        <section className="card space-y-4 py-6 border-brand-200/70">
+          <div className="flex items-start gap-3">
+            <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 shrink-0">
+              <BookOpen className="w-6 h-6" aria-hidden />
+            </span>
+            <div>
+              <h2 className="font-bold text-lg leading-snug">Te falta un paso: inscribirte al curso</h2>
+              <p className="text-gray-600 text-sm mt-1">
+                Tu cuenta ya existe, pero todavía no estás en ningún ciclo. Sin esto, el domingo tu
+                asistencia no queda registrada.
+              </p>
+            </div>
+          </div>
+
+          {ciclosAbiertos.length > 0 ? (
+            <div className="space-y-3">
+              {ciclosAbiertos.map((c) => (
+                <div key={c.id} className="rounded-xl border border-gray-200 p-3 space-y-2">
+                  <p className="font-semibold">{c.name}</p>
+                  <p className="text-sm text-gray-600">
+                    {c.primera ? <>Primera clase: <b>{fmtDate(c.primera)}</b></> : 'Fechas por confirmar'}
+                    {c.location_name ? <> · {c.location_name}</> : null}
+                  </p>
+                  <EnrollButton cycleId={c.id} />
+                </div>
+              ))}
+              <p className="text-xs text-gray-500">
+                Es un solo toque. Si te arrepientes, puedes retirarte desde <Link href="/curso" className="underline">Mi curso</Link>.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
+              Ahora mismo no hay un ciclo con inscripciones abiertas. En cuanto se abra el próximo, te
+              aparecerá aquí para que te anotes con un toque.
+            </div>
+          )}
         </section>
       )}
 

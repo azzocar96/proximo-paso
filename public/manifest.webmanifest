@@ -1,12 +1,17 @@
 {
-  "name": "Próximo Paso",
+  "name": "Próximo Paso · Iglesia Global Orlando",
   "short_name": "Próximo Paso",
-  "description": "Curso Próximo Paso de la iglesia",
+  "description": "Tu paso por el curso Próximo Paso: inscripción, asistencia con QR y certificado.",
+  "lang": "es",
   "start_url": "/inicio",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#FE4703",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
