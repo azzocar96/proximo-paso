@@ -8,3 +8,6 @@ node_modules/
 # Nunca al repositorio: contrasenas temporales y borradores internos
 accesos-*.txt
 politica-de-privacidad*.txt
+
+_to_delete/
+*.bundle
