@@ -442,7 +442,9 @@ begin
   if position('guardian_email' in def) > 0 then
     return;  -- ya aplicada
   end if;
-  if position('Falta el nombre, el contacto o la autorización del representante.' in def) = 0 then
+  -- En producción esta función se aplicó en agosto desde una copia SIN acentos
+  -- ("autorizacion"), así que el ancla se compara sin la parte acentuada.
+  if position('Falta el nombre, el contacto o la autoriz' in def) = 0 then
     raise exception '026: handle_new_user no es la versión que esperaba (la de la 017). Revísala a mano antes de seguir.';
   end if;
 end $mig$;

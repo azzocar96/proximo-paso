@@ -39,13 +39,15 @@ declare def text;
 begin
   def := pg_get_functiondef('register_attendance(text, double precision, double precision, double precision)'::regprocedure);
   if position('fn_guardian_ok' in def) > 0 then return; end if;
-  if position('-- geolocalización' in def) = 0 then
-    raise exception '027: no encontré el bloque de geolocalización dentro de register_attendance';
+  -- En producción los comentarios de esta función no existen (se aplicó desde
+  -- una copia sin ellos), así que el ancla es código, no un comentario.
+  if position('radius := coalesce' in def) = 0 then
+    raise exception '027: no encontré el cálculo del radio dentro de register_attendance';
   end if;
   def := replace(def,
-    '-- geolocalización',
+    'radius := coalesce',
     'if not fn_guardian_ok() then raise exception ''Tu cuenta está esperando la autorización de tu representante. Avísale a quien atiende la clase para que registre tu asistencia mientras tanto.'' using errcode = ''P0001''; end if;'
-    || chr(10) || '  -- geolocalización');
+    || chr(10) || '  radius := coalesce');
   execute def;
 end $mig$;
 

@@ -1,6 +1,6 @@
 -- ===========================================================================
 --  PRÓXIMO PASO · APLICAR EN SUPABASE
---  Generado el 17 de septiembre de 2026
+--  Generado el 17 de septiembre de 2026 · YA APLICADO en producción el 18-sep (correrlo otra vez no hace daño)
 -- ===========================================================================
 --
 --  QUÉ HACER CON ESTE ARCHIVO
@@ -483,7 +483,7 @@ begin
   if position('guardian_email' in def) > 0 then
     return;  -- ya aplicada
   end if;
-  if position('Falta el nombre, el contacto o la autorización del representante.' in def) = 0 then
+  if position('Falta el nombre, el contacto o la autoriz' in def) = 0 then
     raise exception '026: handle_new_user no es la versión que esperaba (la de la 017). Revísala a mano antes de seguir.';
   end if;
 end $mig$;
@@ -669,13 +669,13 @@ declare def text;
 begin
   def := pg_get_functiondef('register_attendance(text, double precision, double precision, double precision)'::regprocedure);
   if position('fn_guardian_ok' in def) > 0 then return; end if;
-  if position('-- geolocalización' in def) = 0 then
-    raise exception '027: no encontré el bloque de geolocalización dentro de register_attendance';
+  if position('radius := coalesce' in def) = 0 then
+    raise exception '027: no encontré el cálculo del radio dentro de register_attendance';
   end if;
   def := replace(def,
-    '-- geolocalización',
+    'radius := coalesce',
     'if not fn_guardian_ok() then raise exception ''Tu cuenta está esperando la autorización de tu representante. Avísale a quien atiende la clase para que registre tu asistencia mientras tanto.'' using errcode = ''P0001''; end if;'
-    || chr(10) || '  -- geolocalización');
+    || chr(10) || '  radius := coalesce');
   execute def;
 end $mig$;
 
