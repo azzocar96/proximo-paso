@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { Newspaper, ArrowRight } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
 import { fmtDate } from '@/lib/utils';
@@ -28,7 +30,8 @@ export default async function OradorPage() {
   const { data: sessions } = await vigilar('app/(app)/orador/course_sessions', supabase.from('course_sessions')
     .select('id,step_number,name,session_date,status, course_cycles(name)')
     .in('step_number', stepNumbers).eq('is_certification', false)
-    .order('session_date', { ascending: false }).limit(12));
+    .gte('session_date', new Date().toISOString().slice(0, 10))
+    .order('session_date', { ascending: true }).limit(12));
 
   return (
     <div className="space-y-5">
@@ -40,6 +43,13 @@ export default async function OradorPage() {
           Todo queda registrado en auditoría con tu nombre.
         </p>
       </div>
+      <div className="flex flex-wrap gap-2">
+        {stepNumbers.map((n) => (
+          <Link key={n} href={`/muro?w=${encodeURIComponent(`s:${n}`)}`} className="btn-secondary text-sm !py-2 inline-flex items-center gap-2">
+            <Newspaper className="w-4 h-4" aria-hidden /> Muro del Paso {n} <ArrowRight className="w-3.5 h-3.5" aria-hidden />
+          </Link>
+        ))}
+      </div>
       <SpeakerRequests requests={pendingRequests ?? []} />
       <section className="card text-sm">
         <h2 className="font-bold mb-2">Próximas sesiones de tu paso</h2>
@@ -50,7 +60,7 @@ export default async function OradorPage() {
               <span className="text-gray-500">{s.session_date ? fmtDate(s.session_date) : 'Sin fecha'}</span>
             </li>
           ))}
-          {(sessions ?? []).length === 0 && <li className="py-2 text-gray-500">Sin sesiones programadas.</li>}
+          {(sessions ?? []).length === 0 && <li className="py-2 text-gray-500">No hay sesiones programadas de tu paso por delante.</li>}
         </ul>
       </section>
     </div>
