@@ -1,21 +1,10 @@
-import {
-  Home, TrendingUp, ScanLine, Megaphone, User, BookOpen,
-  HeartHandshake, MessageSquare, Mic, Wrench, LogOut, Users, Newspaper, Inbox, HandHeart,
-} from 'lucide-react';
-import { NavLink } from '@/components/shell/NavLink';
+import { LogOut } from 'lucide-react';
+import { SideNav, BottomNav } from '@/components/shell/AppNav';
 import { TopBar, type Contadores } from '@/components/shell/TopBar';
 import { iniciales } from '@/components/ui/Avatar';
 import { requireUser } from '@/lib/auth';
 import { signOut } from '@/lib/actions/auth';
 import { vigilar } from '@/lib/supabase/vigilar';
-
-const NAV = [
-  { href: '/inicio', label: 'Inicio', Icon: Home },
-  { href: '/progreso', label: 'Progreso', Icon: TrendingUp },
-  { href: '/escanear', label: 'Asistir', Icon: ScanLine },
-  { href: '/anuncios', label: 'Anuncios', Icon: Megaphone },
-  { href: '/perfil', label: 'Perfil', Icon: User },
-];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user } = await requireUser();
@@ -57,29 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {/* Logo real de la iglesia (logo.png), no el ícono placeholder */}
           <img src="/logo.png" alt="Próximo Paso" className="h-9 w-auto" />
         </div>
-        {NAV.map((item) => <NavLink key={item.href} {...item} />)}
-        <NavLink href="/curso" label="Mi curso" Icon={BookOpen} />
-        {canSeeMinistries && (
-          <NavLink href="/ministerios" label="Ministerios" Icon={HeartHandshake} />
-        )}
-        {canSeeWall && (
-          <NavLink href="/muro" label="Muro" Icon={Newspaper} />
-        )}
-        <NavLink href="/solicitudes" label="Solicitudes" Icon={Inbox} />
-        <NavLink href="/mensajes" label="Mensajes" Icon={MessageSquare} />
-        {(isSpeaker || isStaff || isLeader || isServant) && <div className="my-2 border-t border-gray-100" />}
-        {isServant && (
-          <NavLink href="/servicio" label="Mi servicio" Icon={HandHeart} accent />
-        )}
-        {isLeader && (
-          <NavLink href="/liderazgo" label="Mi ministerio" Icon={Users} accent />
-        )}
-        {isSpeaker && (
-          <NavLink href="/orador" label="Mi paso" Icon={Mic} accent />
-        )}
-        {isStaff && (
-          <NavLink href="/admin" label="Panel admin" Icon={Wrench} accent />
-        )}
+        <SideNav f={{ canSeeMinistries, canSeeWall, isServant, isLeader, isSpeaker, isStaff }} />
         <form action={signOut} className="mt-auto">
           <button className="nav-item w-full text-left">
             <LogOut className="nav-item-icon" aria-hidden /> Cerrar sesión
@@ -90,9 +57,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <TopBar userId={user.id} iniciales={ini} nombre={nombre} inicial={contadores} />
         <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6">{children}</main>
       </div>
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-gray-200 grid grid-cols-5 z-40 pb-[env(safe-area-inset-bottom)]" aria-label="Navegación principal">
-        {NAV.map((item) => <NavLink key={item.href} {...item} variant="bottom" />)}
-      </nav>
+      <BottomNav />
     </div>
   );
 }
