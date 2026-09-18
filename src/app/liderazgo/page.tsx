@@ -4,6 +4,7 @@ import { requireMinistryLeader } from '@/lib/auth';
 import { fmtDate, MEMBER_REQUEST_KIND_LABEL } from '@/lib/utils';
 import { JoinRequestRow, OtherRequestRow, MemberRow, MinistryProfileCard, AddMemberCard, ServantsCard } from './ui';
 import { ActiveMemberRequests } from '@/components/ActiveMemberRequests';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Mi ministerio' };
 
@@ -16,14 +17,14 @@ export const metadata = { title: 'Mi ministerio' };
  */
 export default async function LiderazgoPage() {
   const { supabase, user } = await requireMinistryLeader();
-  const { data: myRole } = await supabase.rpc('fn_role');
+  const { data: myRole } = await vigilar('app/liderazgo/fn_role', supabase.rpc('fn_role'));
   const isAdminTier = ['pastor', 'superadmin'].includes(myRole as string);
   // Los teléfonos de la ficha ya no se leen por tabla: la migración 021 quitó
   // el permiso sobre esas dos columnas porque cualquiera con cuenta podía
   // pedirlas por REST. Ahora vienen por RPC, que solo devuelve los ministerios
   // que esta persona administra. Un admin/pastor recibe todos.
-  const { data: manage } = await supabase.rpc('get_ministries_manage');
-  let myMinistries = ((manage as any[]) ?? [])
+  const { data: manage } = await vigilar('app/liderazgo/get_ministries_manage', supabase.rpc('get_ministries_manage'));
+  let myMinistries = (manage ?? [])
     .filter((m: any) => m.status === 'active')
     .map((m: any) => ({ ministry_id: m.id, ministries: m })) as any[];
   const myIds = (myMinistries ?? []).map((m: any) => m.ministry_id);
@@ -47,7 +48,7 @@ export default async function LiderazgoPage() {
       supabase.rpc('get_ministry_servants', { p_ministry: m.ministry_id }),
       supabase.rpc('get_ministry_candidates', { p_ministry: m.ministry_id }),
     ]);
-    return { id: m.ministry_id, servants: (servants as any[]) ?? [], candidates: (candidates as any[]) ?? [] };
+    return { id: m.ministry_id, servants: servants ?? [], candidates: candidates ?? [] };
   }));
   const servantsOf = new Map(servantData.map((d) => [d.id, d]));
 
@@ -65,7 +66,7 @@ export default async function LiderazgoPage() {
         </p>
       </div>
 
-      <ActiveMemberRequests requests={((activeReqs as any[]) ?? []) as any} loadError={activeReqsError?.message ?? null} />
+      <ActiveMemberRequests requests={(activeReqs ?? []) as any} loadError={activeReqsError?.message ?? null} />
 
       <section className="card space-y-3">
         <h2 className="font-bold inline-flex items-center gap-2">

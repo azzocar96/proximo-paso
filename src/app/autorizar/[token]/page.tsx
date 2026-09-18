@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getSettings, str } from '@/lib/settings';
 import { AutorizarForm } from './ui';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Autorización del representante' };
 export const dynamic = 'force-dynamic';
@@ -14,7 +15,7 @@ export const dynamic = 'force-dynamic';
  */
 export default async function AutorizarPage({ params }: { params: { token: string } }) {
   const supabase = createClient();
-  const { data } = await supabase.rpc('get_guardian_request', { p_token: params.token });
+  const { data } = await vigilar('app/autorizar/[token]/get_guardian_request', supabase.rpc('get_guardian_request', { p_token: params.token }));
   const r = (data ?? { estado: 'no_existe' }) as {
     estado: 'pendiente' | 'ya_autorizado' | 'caducado' | 'no_existe';
     menor?: string; representante?: string;

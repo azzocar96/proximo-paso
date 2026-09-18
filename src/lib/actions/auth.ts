@@ -52,8 +52,8 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
     // iglesia, es mejor decirlo que aplicar una regla que quizá no es la suya.
     return { error: 'No pudimos verificar los requisitos de edad en este momento. Intenta de nuevo en un minuto.' };
   }
-  const minAge = Number((policy as any)?.min_age ?? 18);
-  const allowMinors = (policy as any)?.allow_minors === true;
+  const minAge = Number(policy?.min_age ?? 18);
+  const allowMinors = policy?.allow_minors === true;
   if (age < minAge) {
     if (!allowMinors) {
       return { error: `Para registrarte por tu cuenta necesitas tener al menos ${minAge} años. Escríbenos desde la página de contacto y te inscribimos junto a tu representante.` };
@@ -161,7 +161,7 @@ export async function updatePassword(_prev: FormState, formData: FormData): Prom
 async function verifyPassword(email: string, password: string): Promise<string | null> {
   const { error } = await createVerifyClient().auth.signInWithPassword({ email, password });
   if (!error) return null;
-  if ((error as any).status === 429) return 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.';
+  if (error.status === 429) return 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.';
   if (error.message.toLowerCase().includes('invalid login')) return 'La contraseña actual no es correcta.';
   return 'No pudimos verificar tu contraseña ahora mismo. Intenta de nuevo en un minuto.';
 }
@@ -289,7 +289,7 @@ export async function getRegistrationPolicy(): Promise<{ min_age: number; allow_
   const { data, error } = await supabase.rpc('fn_registration_policy');
   if (error || !data) return null;
   return {
-    min_age: Number((data as any).min_age ?? 18),
-    allow_minors: (data as any).allow_minors === true,
+    min_age: Number(data.min_age ?? 18),
+    allow_minors: data.allow_minors === true,
   };
 }

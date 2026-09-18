@@ -3,6 +3,7 @@ import { User, Users, BookOpen, HeartHandshake, Mail, Mic, Wrench, ChevronRight,
 import { requireUser } from '@/lib/auth';
 import { ProfileForm, AvatarForm, ActiveMemberCard, SecurityCard } from './ui';
 import { signOut } from '@/lib/actions/auth';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Mi perfil' };
 export default async function PerfilPage() {
@@ -15,14 +16,14 @@ export default async function PerfilPage() {
       supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
       supabase.rpc('fn_my_nav'),
     ]);
-  const { data: servantRoles } = await supabase.rpc('fn_my_servant_roles');
-  const isServant = ((servantRoles as any[]) ?? []).length > 0;
+  const { data: servantRoles } = await vigilar('app/(app)/perfil/fn_my_servant_roles', supabase.rpc('fn_my_servant_roles'));
+  const isServant = (servantRoles ?? []).length > 0;
   const isStaff = ['coordinator', 'pastor', 'superadmin'].includes(role as string);
   const isSpeaker = (mySpeakerSteps ?? []).length > 0;
   // Mismo criterio y misma tolerancia a fallos que el menú lateral (migración 013).
   const navFailed = Boolean(navError);
-  const canSeeMinistries = navFailed || (nav as any)?.can_ministries === true;
-  const canSeeWall = navFailed || (nav as any)?.can_wall === true;
+  const canSeeMinistries = navFailed || nav?.can_ministries === true;
+  const canSeeWall = navFailed || nav?.can_wall === true;
   const quickLinks = [
     { href: '/curso', label: 'Mi curso', Icon: BookOpen },
     ...(canSeeMinistries ? [{ href: '/ministerios', label: 'Ministerios', Icon: HeartHandshake }] : []),

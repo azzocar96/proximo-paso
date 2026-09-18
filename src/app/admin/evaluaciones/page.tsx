@@ -15,7 +15,7 @@ export default async function EvaluacionesPage() {
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Test de personalidad</h1>
       <AssessmentAdmin
-        assessments={(assessments as any) ?? []}
+        assessments={assessments ?? []}
         mode={str(settings, 'assessment_mode', 'internal_test')}
         externalUrl={str(settings, 'assessment_external_url', '')}
         activeId={str(settings, 'assessment_active_id', '')}

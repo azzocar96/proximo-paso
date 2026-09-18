@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth';
 import { getActiveEnrollment, getProgress } from '@/lib/course';
 import { getSettings, str } from '@/lib/settings';
 import { TestRunner, ExternalTest } from './ui';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Test de personalidad' };
 export default async function TestPage() {
@@ -20,14 +21,14 @@ export default async function TestPage() {
   const activeId = str(s, 'assessment_active_id', '');
 
   // resultado existente
-  const { data: attempt } = await supabase.from('assessment_attempts')
+  const { data: attempt } = await vigilar('app/(app)/test/assessment_attempts', supabase.from('assessment_attempts')
     .select('id, completed_at, assessment_results(total_score, dimension_scores, summary, external_result)')
     .eq('user_id', user.id).eq('enrollment_id', enrollment!.id)
-    .not('completed_at', 'is', null).limit(1).maybeSingle();
+    .not('completed_at', 'is', null).limit(1).maybeSingle());
 
   if (attempt) {
-    const res: any = Array.isArray((attempt as any).assessment_results)
-      ? (attempt as any).assessment_results[0] : (attempt as any).assessment_results;
+    const res: any = Array.isArray(attempt.assessment_results)
+      ? attempt.assessment_results[0] : attempt.assessment_results;
     return (
       <div className="space-y-5">
         <h1 className="text-2xl font-extrabold">Test de personalidad</h1>
@@ -58,9 +59,9 @@ export default async function TestPage() {
   }
 
   if (!activeId) return <Locked msg="La iglesia aún no configuró el test. Vuelve más tarde." href="/inicio" cta="Volver" />;
-  const { data: assessment } = await supabase.from('assessments')
+  const { data: assessment } = await vigilar('app/(app)/test/assessments', supabase.from('assessments')
     .select('id,title,description,is_demo, assessment_sections(id,title,position, assessment_questions(id,question_type,text,required,position,scale_min,scale_max, assessment_options(id,text,position)))')
-    .eq('id', activeId).eq('is_active', true).maybeSingle();
+    .eq('id', activeId).eq('is_active', true).maybeSingle());
   if (!assessment) return <Locked msg="La iglesia aún no configuró el test. Vuelve más tarde." href="/inicio" cta="Volver" />;
 
   return (

@@ -3,6 +3,7 @@ import { Clock, LogOut } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getSettings, str } from '@/lib/settings';
 import { signOut } from '@/lib/actions/auth';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Esperando la autorización' };
 export const dynamic = 'force-dynamic';
@@ -14,10 +15,10 @@ export const dynamic = 'force-dynamic';
  */
 export default async function AutorizacionPendientePage() {
   const { supabase, user } = await requireUser();
-  const { data } = await supabase
+  const { data } = await vigilar('app/(auth)/autorizacion-pendiente/profiles', supabase
     .from('profiles')
     .select('first_name, guardian_first_name, guardian_email, guardian_authorization_status')
-    .eq('id', user.id).maybeSingle();
+    .eq('id', user.id).maybeSingle());
 
   const estado = data?.guardian_authorization_status as string | undefined;
   if (!estado || estado === 'not_required' || estado === 'granted') redirect('/inicio');

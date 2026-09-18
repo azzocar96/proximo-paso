@@ -3,6 +3,7 @@ import { Users, UserCheck, AlertCircle, Award, GraduationCap, HeartHandshake, Ar
 import { requireStaff } from '@/lib/auth';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { CYCLE_LABEL } from '@/lib/utils';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Dashboard' };
 export default async function AdminDashboard() {
@@ -21,9 +22,9 @@ export default async function AdminDashboard() {
   const cycleIds = (cycles ?? []).map((c) => c.id);
   let byStep: { step: number; count: number }[] = [];
   if (cycleIds.length) {
-    const { data: sessions } = await supabase.from('course_sessions').select('id,step_number,cycle_id').in('cycle_id', cycleIds);
+    const { data: sessions } = await vigilar('app/admin/course_sessions', supabase.from('course_sessions').select('id,step_number,cycle_id').in('cycle_id', cycleIds));
     const sessionMap = new Map((sessions ?? []).map((s) => [s.id, s.step_number]));
-    const { data: att } = await supabase.from('attendance_records').select('session_id').in('session_id', [...sessionMap.keys()]);
+    const { data: att } = await vigilar('app/admin/attendance_records', supabase.from('attendance_records').select('session_id').in('session_id', [...sessionMap.keys()]));
     const agg = new Map<number, number>();
     for (const a of att ?? []) {
       const st = sessionMap.get(a.session_id)!;

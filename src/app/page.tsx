@@ -2,6 +2,10 @@ import Link from 'next/link';
 import { ArrowRight, MapPin, Clock3, Timer, CalendarDays, Sparkles, CheckCircle2 } from 'lucide-react';
 import { getSettings, str, arr, obj } from '@/lib/settings';
 
+// Siempre en vivo: la caché de 60 s de getSettings ya da la velocidad; lo que
+// no queremos es que el texto quede congelado en el momento del deploy.
+export const dynamic = 'force-dynamic';
+
 const FALLBACK_STEPS = [
   { name: 'Sígueme', hint: 'Da el primer paso para conocer y seguir a Jesús.' },
   { name: 'Intimidad con Dios', hint: 'Cultiva una relación cercana y personal con Dios.' },
@@ -50,7 +54,9 @@ export default async function Landing() {
     objectives = str(s, 'program_objectives', objectives);
     stepNames = arr(s, 'step_names', stepNames);
     schedule = obj<Schedule>(s, 'program_schedule', schedule);
-  } catch {}
+  } catch (e) {
+    console.error('[settings]', (e as Error)?.message ?? e);
+  }
 
   const steps = stepNames.map((name, i) => ({ name, hint: FALLBACK_STEPS[i]?.hint ?? '' }));
   const months = schedule.months_excluded?.length

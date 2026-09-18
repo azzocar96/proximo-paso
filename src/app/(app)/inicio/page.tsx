@@ -9,25 +9,36 @@ import { EnrollButton } from '@/app/(app)/curso/ui';
 export const metadata = { title: 'Inicio' };
 export default async function InicioPage() {
   const { supabase, user } = await requireUser();
-  const { data: profile } = await supabase.from('profiles').select('first_name,active_member').eq('id', user.id).single();
-  // Invitación (no obligación) a servir: solo para el miembro activo que todavía
-  // no está en ningún equipo y no tiene una solicitud en curso. Servir es opcional.
-  const { data: myMinistry } = await supabase.from('ministry_assignments')
-    .select('id').eq('user_id', user.id).in('status', ['assigned', 'active']);
-  const { data: myPending } = await supabase.from('member_requests')
-    .select('id').eq('user_id', user.id).eq('status', 'pending');
+  // Todo lo que no depende de lo demás sale a la vez: antes eran cinco viajes
+  // seguidos a la base por cada apertura de la pantalla más usada de la app.
+  const [profileRes, ministryRes, pendingRes, annRes, enrollment] = await Promise.all([
+    supabase.from('profiles').select('first_name,active_member').eq('id', user.id).single(),
+    // Invitación (no obligación) a servir: solo para el miembro activo que todavía
+    // no está en ningún equipo y no tiene una solicitud en curso. Servir es opcional.
+    supabase.from('ministry_assignments').select('id').eq('user_id', user.id).in('status', ['assigned', 'active']),
+    supabase.from('member_requests').select('id').eq('user_id', user.id).eq('status', 'pending'),
+    supabase.from('announcements').select('id,title,content,publish_at')
+      .order('priority', { ascending: false }).order('publish_at', { ascending: false }).limit(1).maybeSingle(),
+    getActiveEnrollment(supabase, user.id),
+  ]);
+  for (const [nombre, r] of [['profiles', profileRes], ['ministry_assignments', ministryRes], ['member_requests', pendingRes], ['announcements', annRes]] as const) {
+    if (r.error) console.error(`[inicio/${nombre}]`, r.error.message);
+  }
+  const profile = profileRes.data;
+  const ann = annRes.data;
   const invitarAServir = Boolean(profile?.active_member)
-    && (myMinistry ?? []).length === 0 && (myPending ?? []).length === 0;
-  const enrollment = await getActiveEnrollment(supabase, user.id);
+    && (ministryRes.data ?? []).length === 0 && (pendingRes.data ?? []).length === 0;
+  // Lo que sí depende de la inscripción va después, y solo la rama que toque.
   const progress = enrollment ? await getProgress(supabase, enrollment.id) : null;
   // Sin inscripción: traer el ciclo abierto para que se inscriba AQUÍ, sin
   // buscarlo. Es el punto donde más gente se queda a medias: crea la cuenta y
   // cree que ya está inscrita.
   let ciclosAbiertos: { id: string; name: string; location_name: string | null; primera: string | null }[] = [];
   if (!enrollment) {
-    const { data: abiertos } = await supabase.from('course_cycles')
+    const { data: abiertos, error } = await supabase.from('course_cycles')
       .select('id,name,location_name,registration_end,course_sessions(session_date,step_number)')
       .eq('status', 'registration_open').is('deleted_at', null).order('registration_start');
+    if (error) console.error('[inicio/course_cycles]', error.message);
     const hoy = new Date().toISOString().slice(0, 10);
     ciclosAbiertos = (abiertos ?? [])
       .filter((c: any) => !c.registration_end || c.registration_end > new Date().toISOString())
@@ -38,8 +49,6 @@ export default async function InicioPage() {
       // Un ciclo cuya primera clase ya pasó no se ofrece: la base lo rechazaría igual.
       .filter((c) => !c.primera || c.primera >= hoy);
   }
-  const { data: ann } = await supabase.from('announcements').select('id,title,content,publish_at')
-    .order('priority', { ascending: false }).order('publish_at', { ascending: false }).limit(1).maybeSingle();
 
   const nextSession = progress?.steps.find((s) => !s.attended && s.date);
   const today = new Date().toISOString().slice(0, 10);
@@ -82,7 +91,7 @@ export default async function InicioPage() {
       {enrollment && progress ? (
         <section className="card space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold">{(enrollment as any).course_cycles?.name}</h2>
+            <h2 className="font-bold">{enrollment.course_cycles?.name}</h2>
             <StatusBadge status={enrollment.status} label={ENROLLMENT_LABEL[enrollment.status]} />
           </div>
           <div>

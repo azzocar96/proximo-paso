@@ -26,8 +26,8 @@ export default async function ServicioPage() {
     supabase.rpc('fn_my_servant_roles'),
     supabase.rpc('get_servant_sessions'),
   ]);
-  const mis = ((rolesRes.data as any[]) ?? []);
-  const clases = ((sessionsRes.data as any[]) ?? []);
+  const mis = (rolesRes.data ?? []);
+  const clases = (sessionsRes.data ?? []);
   const fallo = Boolean(rolesRes.error || sessionsRes.error);
 
   // Un fallo de carga no puede leerse como "no tienes ningún cargo": esa

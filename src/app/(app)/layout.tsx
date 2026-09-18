@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { signOut } from '@/lib/actions/auth';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 const NAV = [
   { href: '/inicio', label: 'Inicio', Icon: Home },
@@ -25,8 +26,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ]);
   // Fase 3g: el servidor de un ministerio no es director ni orador, pero puede
   // tener responsabilidades reales (mostrar el QR, confirmar asistencias).
-  const { data: servantRoles } = await supabase.rpc('fn_my_servant_roles');
-  const isServant = ((servantRoles as any[]) ?? []).length > 0;
+  const { data: servantRoles } = await vigilar('app/(app)/layout/fn_my_servant_roles', supabase.rpc('fn_my_servant_roles'));
+  const isServant = (servantRoles ?? []).length > 0;
   // Nota (Fase 3a): "admin" quedó inerte — el nivel más alto ahora es pastor/superadmin.
   const isStaff = ['coordinator', 'pastor', 'superadmin'].includes(role as string);
   const isSpeaker = (mySpeakerSteps ?? []).length > 0;
@@ -38,8 +39,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // mostramos los enlaces: enseñar de más es recuperable, esconder de más deja a la
   // gente sin app y en silencio — la lección del incidente de permisos (migración 010).
   const navFailed = Boolean(navError);
-  const canSeeMinistries = navFailed || (nav as any)?.can_ministries === true;
-  const canSeeWall = navFailed || (nav as any)?.can_wall === true;
+  const canSeeMinistries = navFailed || nav?.can_ministries === true;
+  const canSeeWall = navFailed || nav?.can_wall === true;
   return (
     <div className="min-h-screen pb-24 md:pb-0 md:flex">
       <aside className="hidden md:flex md:flex-col w-64 shrink-0 bg-white border-r border-gray-200 min-h-screen p-4 gap-0.5">

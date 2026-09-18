@@ -34,7 +34,7 @@ export async function setMinistryServant(ministryId: string, userId: string, p: 
   });
   if (error) return { error: friendly(error) };
   revalidateAll();
-  const name = (data as any)?.name;
+  const name = data?.name;
   return { success: name ? `Listo. ${name} queda con lo que le marcaste.` : 'Servidor guardado.' };
 }
 
@@ -45,7 +45,7 @@ export async function removeMinistryServant(ministryId: string, userId: string):
   });
   if (error) return { error: friendly(error) };
   revalidateAll();
-  const name = (data as any)?.name;
+  const name = data?.name;
   return { success: name ? `${name} deja de ser servidora. Sigue en tu equipo.` : 'Servidor retirado.' };
 }
 
@@ -70,7 +70,7 @@ export async function resolveDirectorRequest(requestId: string, accept: boolean,
   });
   if (error) return { error: friendly(error) };
   revalidateAll();
-  const name = (data as any)?.name;
+  const name = data?.name;
   return {
     success: accept
       ? (name ? `${name} ya dirige ese ministerio.` : 'Aprobada.')

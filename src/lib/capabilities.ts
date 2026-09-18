@@ -13,5 +13,5 @@ export async function getCapabilities(): Promise<Capabilities> {
     console.error('[fn_platform_capabilities]', error.message);
     return { email_outbound: false };
   }
-  return { email_outbound: (data as any)?.email_outbound === true };
+  return { email_outbound: data?.email_outbound === true };
 }

@@ -1,6 +1,7 @@
 import { Inbox } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { RequestsHub } from './ui';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Solicitudes' };
 
@@ -18,13 +19,13 @@ export default async function SolicitudesPage() {
     supabase.rpc('get_my_requests_archive', { p_limit: 30 }),
     supabase.rpc('get_ministries_catalog'),
   ]);
-  const { data: role } = await supabase.rpc('fn_role');
+  const { data: role } = await vigilar('app/(app)/solicitudes/fn_role', supabase.rpc('fn_role'));
   const isAdmin = ['pastor', 'superadmin'].includes(role as string);
   // Misma fuente de verdad que el menú: sin esto, esta pantalla invitaba a
   // dirigir un ministerio a alguien a quien /ministerios le dice que todavía
   // no puede ni verlos. Si la RPC falla, mostramos (igual que el menú).
   const { data: nav, error: navError } = await supabase.rpc('fn_my_nav');
-  const isActiveMember = Boolean(navError) || (nav as any)?.is_active_member === true;
+  const isActiveMember = Boolean(navError) || nav?.is_active_member === true;
 
   // Si una de las tres falla no se puede fingir que está vacía: eso ya nos
   // costó una vez que la app entera pareciera en blanco sin dar un solo error.
@@ -41,10 +42,10 @@ export default async function SolicitudesPage() {
         </p>
       </div>
       <RequestsHub
-        mine={((mine.data as any[]) ?? []) as any}
-        inbox={((inbox.data as any[]) ?? []) as any}
-        archive={((archive.data as any[]) ?? []) as any}
-        ministries={((ministries.data as any[]) ?? []).map((m: any) => ({ id: m.id, name: m.name }))}
+        mine={(mine.data ?? []) as any}
+        inbox={(inbox.data ?? []) as any}
+        archive={(archive.data ?? []) as any}
+        ministries={(ministries.data ?? []).map((m: any) => ({ id: m.id, name: m.name }))}
         isAdmin={isAdmin}
         isActiveMember={isActiveMember}
         loadError={loadError}

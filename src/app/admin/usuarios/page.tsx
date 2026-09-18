@@ -3,6 +3,7 @@ import { UsersTable, RoleChangeRequests } from './ui';
 import { ActiveMemberRequests } from '@/components/ActiveMemberRequests';
 import { fmtDate } from '@/lib/utils';
 import Link from 'next/link';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Usuarios' };
 export default async function UsuariosPage({ searchParams }: { searchParams: { q?: string } }) {
@@ -12,10 +13,10 @@ export default async function UsuariosPage({ searchParams }: { searchParams: { q
     .select('id,first_name,last_name,email,phone,account_status,created_at, user_roles!user_roles_user_id_fkey(role)')
     .order('created_at', { ascending: false }).limit(100);
   if (q) query = query.or(`email.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%,phone.ilike.%${q}%`);
-  const { data: users } = await query;
-  const { data: roleRequests } = await supabase.from('member_requests')
+  const { data: users } = await vigilar('app/admin/usuarios', query);
+  const { data: roleRequests } = await vigilar('app/admin/usuarios/member_requests', supabase.from('member_requests')
     .select('id,details,created_at, profiles!member_requests_user_id_fkey(first_name,last_name,email)')
-    .eq('kind', 'role_change').eq('status', 'pending').order('created_at');
+    .eq('kind', 'role_change').eq('status', 'pending').order('created_at'));
   // Fase 3c: quiénes tienen permiso puntual de publicar en el muro general
   const { data: publisherRows, error: publishersError } = await supabase.from('wall_publishers').select('user_id');
   const publishers = (publisherRows ?? []).map((r: { user_id: string }) => r.user_id);

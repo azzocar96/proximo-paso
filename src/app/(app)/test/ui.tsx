@@ -51,7 +51,7 @@ export function TestRunner({ assessment }: { assessment: Assessment }) {
   return (
     <div className="card space-y-4">
       <div className="flex justify-between text-xs text-gray-500">
-        <span>{(q as any).section}</span><span>{idx + 1} / {questions.length}</span>
+        <span>{q.section}</span><span>{idx + 1} / {questions.length}</span>
       </div>
       <div className="h-2 rounded-full bg-gray-100"><div className="h-full bg-brand-600 rounded-full" style={{ width: `${((idx + 1) / questions.length) * 100}%` }} /></div>
       <p className="font-semibold text-lg">{q.text}{q.required && ' *'}</p>

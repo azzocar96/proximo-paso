@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
 import { CambiarClaveForm } from './ui';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Cambia tu contraseña' };
 export const dynamic = 'force-dynamic';
@@ -13,8 +14,8 @@ export const dynamic = 'force-dynamic';
  */
 export default async function CambiarClavePage() {
   const { supabase, user } = await requireUser();
-  const { data } = await supabase
-    .from('profiles').select('must_change_password, first_name').eq('id', user.id).maybeSingle();
+  const { data } = await vigilar('app/(auth)/cambiar-clave/profiles', supabase
+    .from('profiles').select('must_change_password, first_name').eq('id', user.id).maybeSingle());
   if (!data?.must_change_password) redirect('/inicio');
 
   return <CambiarClaveForm nombre={data.first_name as string} />;

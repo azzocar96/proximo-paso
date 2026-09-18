@@ -3,6 +3,7 @@ import { Church, CalendarDays, Clock3, MapPin, Lock } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getActiveEnrollment, getProgress } from '@/lib/course';
 import { fmtDate, fmtTime } from '@/lib/utils';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Próxima clase' };
 export default async function ProximaClasePage() {
@@ -16,7 +17,7 @@ export default async function ProximaClasePage() {
       <Link href={p ? '/certificado' : '/curso'} className="btn-primary">{p ? 'Ver mi certificado' : 'Inscribirme'}</Link>
     </div>;
   }
-  const { data: session } = await supabase.from('course_sessions').select('*').eq('id', next.session_id).single();
+  const { data: session } = await vigilar('app/(app)/proxima-clase/course_sessions', supabase.from('course_sessions').select('*').eq('id', next.session_id).single());
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Próxima clase</h1>

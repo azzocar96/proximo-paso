@@ -1,12 +1,13 @@
 import { requireAdmin } from '@/lib/auth';
 import { fmtDate } from '@/lib/utils';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Auditoría' };
 export default async function AuditoriaPage() {
   const { supabase } = await requireAdmin();
-  const { data: logs } = await supabase.from('audit_logs')
+  const { data: logs } = await vigilar('app/admin/auditoria/audit_logs', supabase.from('audit_logs')
     .select('*, profiles(first_name,last_name,email)')
-    .order('created_at', { ascending: false }).limit(200);
+    .order('created_at', { ascending: false }).limit(200));
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Auditoría</h1>

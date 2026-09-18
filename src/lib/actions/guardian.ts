@@ -20,7 +20,7 @@ export async function authorizeGuardian(token: string, confirma: boolean): Promi
     p_token: token, p_confirma: true,
   });
   if (error) return { error: friendly(error) };
-  const nombre = (data as any)?.menor ?? 'la cuenta';
+  const nombre = data?.menor ?? 'la cuenta';
   return { success: `Listo. Autorizaste la cuenta de ${nombre}. Ya puede usar la app.` };
 }
 

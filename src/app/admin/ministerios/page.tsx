@@ -21,7 +21,7 @@ export default async function MinisteriosAdminPage() {
       <section className="space-y-3">
         <h2 className="font-bold">Catálogo</h2>
         <div className="grid md:grid-cols-2 gap-3">
-          {((ministries as any[]) ?? []).map((m: any) => (
+          {(ministries ?? []).map((m: any) => (
             <details key={m.id} className="card">
               <summary className="cursor-pointer font-semibold">{m.name} {m.status !== 'active' && <span className="badge bg-gray-100 text-gray-500">Inactivo</span>}</summary>
               <div className="pt-3"><MinistryForm ministry={m} /></div>
@@ -35,7 +35,7 @@ export default async function MinisteriosAdminPage() {
       </section>
       <section className="space-y-3">
         <h2 className="font-bold">Asignaciones y seguimiento</h2>
-        <AssignmentsTable assignments={(assignments as any) ?? []} />
+        <AssignmentsTable assignments={assignments ?? []} />
       </section>
       <section className="space-y-3">
         <h2 className="font-bold">Líderes de ministerio</h2>
@@ -43,7 +43,7 @@ export default async function MinisteriosAdminPage() {
           Un líder ve, en /liderazgo/segmentacion, únicamente a quienes marcaron interés en el ministerio
           que lidera (Dream Team) — nunca la lista completa. Solo el administrador o el pastor pueden asignar o quitar líderes.
         </p>
-        <MinistryLeadersPanel leaders={(leaders as any) ?? []} ministries={(ministries as any) ?? []} canManage={role === 'superadmin' || role === 'pastor'} />
+        <MinistryLeadersPanel leaders={leaders ?? []} ministries={ministries ?? []} canManage={role === 'superadmin' || role === 'pastor'} />
       </section>
     </div>
   );

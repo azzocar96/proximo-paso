@@ -5,13 +5,14 @@ import { CycleForm } from '../form';
 import { SessionForm, CoordinatorForm, SuggestDateNote, RescheduleForm, CertificationSessionForm } from './ui';
 import { fmtDate, ENROLLMENT_LABEL } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Ciclo' };
 export default async function CicloDetailPage({ params }: { params: { id: string } }) {
   const { supabase, role } = await requireStaff();
   // Nota (Fase 3a): "admin" quedó inerte — el nivel más alto ahora es pastor/superadmin.
   const isAdmin = ['pastor', 'superadmin'].includes(role);
-  const { data: cycle } = await supabase.from('course_cycles').select('*').eq('id', params.id).maybeSingle();
+  const { data: cycle } = await vigilar('app/admin/ciclos/[id]/course_cycles', supabase.from('course_cycles').select('*').eq('id', params.id).maybeSingle());
   if (!cycle) notFound();
   const [{ data: sessions }, { data: enrollments }, { data: coords }, { data: suggested }] = await Promise.all([
     supabase.from('course_sessions').select('*').eq('cycle_id', params.id).order('step_number'),

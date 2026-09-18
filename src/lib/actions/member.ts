@@ -39,7 +39,7 @@ export async function approveActiveMember(userId: string, note?: string): Promis
   });
   if (error) return { error: friendly(error) };
   revalidateReviewPages();
-  const name = (data as any)?.name;
+  const name = data?.name;
   return { success: name ? `${name} ya es miembro activo.` : 'Aprobado.' };
 }
 
@@ -53,7 +53,7 @@ export async function rejectActiveMember(userId: string, reason: string): Promis
   });
   if (error) return { error: friendly(error) };
   revalidateReviewPages();
-  const name = (data as any)?.name;
+  const name = data?.name;
   return { success: name ? `Solicitud de ${name} rechazada con tu motivo.` : 'Solicitud rechazada.' };
 }
 

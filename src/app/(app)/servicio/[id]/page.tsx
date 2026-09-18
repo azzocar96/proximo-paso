@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { QrScreen } from '@/app/admin/sesiones/[id]/qr/ui';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Código de asistencia' };
 
@@ -14,18 +15,18 @@ export const metadata = { title: 'Código de asistencia' };
  */
 export default async function ServicioQrPage({ params }: { params: { id: string } }) {
   const { supabase } = await requireUser();
-  const { data: sessions } = await supabase.rpc('get_servant_sessions');
-  const mine = ((sessions as any[]) ?? []).find((s: any) => s.id === params.id);
+  const { data: sessions } = await vigilar('app/(app)/servicio/[id]/get_servant_sessions', supabase.rpc('get_servant_sessions'));
+  const mine = (sessions ?? []).find((s: any) => s.id === params.id);
   if (!mine) notFound();
 
-  const { data: session } = await supabase.from('course_sessions')
-    .select('*, course_cycles(name)').eq('id', params.id).maybeSingle();
+  const { data: session } = await vigilar('app/(app)/servicio/[id]/course_sessions', supabase.from('course_sessions')
+    .select('*, course_cycles(name)').eq('id', params.id).maybeSingle());
   if (!session) notFound();
 
-  const { data: token } = await supabase.from('attendance_tokens')
+  const { data: token } = await vigilar('app/(app)/servicio/[id]/attendance_tokens', supabase.from('attendance_tokens')
     .select('token,expires_at').eq('session_id', params.id).eq('revoked', false)
     .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    .order('created_at', { ascending: false }).limit(1).maybeSingle());
 
   return (
     <div className="space-y-4">

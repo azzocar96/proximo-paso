@@ -23,14 +23,14 @@ export async function fetchWallPosts(ref: WallRef, before: string, beforeId: str
   const supabase = createClient();
   const { data, error } = await supabase.rpc('get_wall_posts', { ...params(ref), p_before: before, p_before_id: beforeId });
   if (error) return { error: error.message };
-  return { posts: (data as any[]) ?? [] };
+  return { posts: data ?? [] };
 }
 
 export async function fetchComments(postId: string): Promise<{ error?: string; comments?: any[] }> {
   const supabase = createClient();
   const { data, error } = await supabase.rpc('get_post_comments', { p_post: postId });
   if (error) return { error: error.message };
-  return { comments: (data as any[]) ?? [] };
+  return { comments: data ?? [] };
 }
 
 export async function addComment(postId: string, content: string): Promise<FormState> {

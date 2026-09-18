@@ -2,13 +2,14 @@ import { createClient } from '@/lib/supabase/server';
 import { fmtDate } from '@/lib/utils';
 import Link from 'next/link';
 import { XCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Verificación de certificado' };
 export const dynamic = 'force-dynamic';
 
 export default async function VerificarPage({ params }: { params: { codigo: string } }) {
   const supabase = createClient();
-  const { data } = await supabase.rpc('verify_certificate', { p_code: params.codigo });
+  const { data } = await vigilar('app/verificar/[codigo]/verify_certificate', supabase.rpc('verify_certificate', { p_code: params.codigo }));
   const r = data as { found: boolean; name?: string; course?: string; date?: string; valid?: boolean } | null;
   return (
     <main className="min-h-screen flex items-center justify-center px-4 bg-gray-50">

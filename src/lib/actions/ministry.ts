@@ -140,6 +140,6 @@ export async function addMinistryMember(ministryId: string, email: string, note?
   if (error) return { error: friendly(error) };
   revalidatePath('/liderazgo');
   revalidatePath('/ministerios');
-  const name = (data as any)?.name;
+  const name = data?.name;
   return { success: name ? `${name} ya forma parte de tu equipo.` : 'Persona agregada al equipo.' };
 }

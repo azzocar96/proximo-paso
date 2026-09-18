@@ -1,12 +1,13 @@
 import { requireStaff } from '@/lib/auth';
 import { AttendancePanel } from './ui';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Asistencia' };
 export default async function AsistenciaAdminPage({ searchParams }: { searchParams: { sesion?: string } }) {
   const { supabase } = await requireStaff();
-  const { data: sessions } = await supabase.from('course_sessions')
+  const { data: sessions } = await vigilar('app/admin/asistencia/course_sessions', supabase.from('course_sessions')
     .select('id,step_number,name,session_date,status,is_certification, course_cycles(name)')
-    .order('session_date', { ascending: false }).limit(60);
+    .order('session_date', { ascending: false }).limit(60));
   const selected = searchParams.sesion ?? (sessions?.[0]?.id ?? null);
   let records: any[] = [], enrolled: any[] = [];
   if (selected) {
@@ -20,15 +21,15 @@ export default async function AsistenciaAdminPage({ searchParams }: { searchPara
               .eq('cycle_id', sess.cycle_id).not('status', 'in', '("withdrawn","cancelled")')
           : { data: [] } as any),
     ]);
-    records = r ?? []; enrolled = (s as any) ?? [];
+    records = r ?? []; enrolled = s ?? [];
   }
-  const { data: pendingRequests } = await supabase.from('attendance_records')
+  const { data: pendingRequests } = await vigilar('app/admin/asistencia/attendance_records', supabase.from('attendance_records')
     .select('id,user_id,request_note,recorded_at,session_id, profiles!attendance_records_user_id_fkey(first_name,last_name,email), course_sessions(step_number,name,session_date,is_certification,course_cycles(name))')
-    .eq('result', 'pending_approval').order('recorded_at');
+    .eq('result', 'pending_approval').order('recorded_at'));
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Asistencia — corrección manual</h1>
-      <AttendancePanel sessions={(sessions as any) ?? []} selectedId={selected} records={records} enrolled={enrolled} pendingRequests={(pendingRequests as any) ?? []} />
+      <AttendancePanel sessions={sessions ?? []} selectedId={selected} records={records} enrolled={enrolled} pendingRequests={pendingRequests ?? []} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export type Role = 'participant' | 'coordinator' | 'admin' | 'superadmin' | 'pastor';
 
@@ -18,7 +19,7 @@ export async function requireUser() {
 export async function getRole(): Promise<Role> {
   const { supabase, user } = await getSession();
   if (!user) return 'participant';
-  const { data } = await supabase.rpc('fn_role');
+  const { data } = await vigilar('lib/auth/fn_role', supabase.rpc('fn_role'));
   return (data as Role) ?? 'participant';
 }
 
@@ -28,7 +29,7 @@ export async function getRole(): Promise<Role> {
 // ver requireMinistryLeader). El nivel más alto ahora es superadmin o pastor.
 export async function requireStaff() {
   const { supabase, user } = await requireUser();
-  const { data: role } = await supabase.rpc('fn_role');
+  const { data: role } = await vigilar('lib/auth/fn_role', supabase.rpc('fn_role'));
   if (!['coordinator', 'pastor', 'superadmin'].includes(role as string)) redirect('/inicio');
   return { supabase, user, role: role as Role };
 }
@@ -47,7 +48,7 @@ export async function requireAdmin() {
  */
 export async function requireMinistryLeader() {
   const { supabase, user } = await requireUser();
-  const { data: isLeader } = await supabase.rpc('fn_is_ministry_leader');
+  const { data: isLeader } = await vigilar('lib/auth/fn_is_ministry_leader', supabase.rpc('fn_is_ministry_leader'));
   if (!isLeader) redirect('/inicio');
   return { supabase, user };
 }

@@ -2,12 +2,13 @@ import Link from 'next/link';
 import { requireStaff } from '@/lib/auth';
 import { CYCLE_LABEL, fmtDate } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Ciclos' };
 export default async function CiclosPage() {
   const { supabase, role } = await requireStaff();
-  const { data: cycles } = await supabase.from('course_cycles').select('*')
-    .is('deleted_at', null).order('created_at', { ascending: false });
+  const { data: cycles } = await vigilar('app/admin/ciclos/course_cycles', supabase.from('course_cycles').select('*')
+    .is('deleted_at', null).order('created_at', { ascending: false }));
   // Nota (Fase 3a): "admin" quedó inerte — el nivel más alto ahora es pastor/superadmin.
   const isAdmin = ['pastor', 'superadmin'].includes(role);
   return (

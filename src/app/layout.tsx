@@ -3,6 +3,10 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { getSettings, str } from '@/lib/settings';
 
+// Todo se sirve en vivo, como siempre fue: la velocidad la pone la caché de 60 s
+// de getSettings, no una página congelada en el momento del deploy.
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -12,7 +16,9 @@ export async function generateMetadata(): Promise<Metadata> {
     const s = await getSettings(['church_name', 'course_name']);
     church = str(s, 'church_name', church);
     course = str(s, 'course_name', course);
-  } catch {}
+  } catch (e) {
+    console.error('[settings]', (e as Error)?.message ?? e);
+  }
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://proximo-paso.netlify.app';
   const description = `${course} es el curso de membresía de ${church}: cuatro clases presenciales para conocer la iglesia, descubrir tu propósito y empezar a servir.`;
   return {

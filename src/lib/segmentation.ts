@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 /**
  * Filtros de segmentación de participantes. Los usa tanto la pantalla
@@ -132,7 +133,7 @@ export async function fetchSegmentationRows(
   }
   let ministryNameById: Record<string, string> = {};
   if (ministryIdsSet.size > 0) {
-    const { data: mins } = await supabase.from('ministries').select('id,name').in('id', Array.from(ministryIdsSet));
+    const { data: mins } = await vigilar('lib/segmentation/ministries', supabase.from('ministries').select('id,name').in('id', Array.from(ministryIdsSet)));
     for (const m of mins ?? []) ministryNameById[m.id as string] = m.name as string;
   }
 

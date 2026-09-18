@@ -3,15 +3,16 @@ import { requireUser } from '@/lib/auth';
 import { fmtDate, CYCLE_LABEL, ENROLLMENT_LABEL } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EnrollButton, WithdrawButton } from './ui';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Mi curso' };
 export default async function CursoPage() {
   const { supabase, user } = await requireUser();
-  const { data: myEnrollments } = await supabase.from('enrollments')
+  const { data: myEnrollments } = await vigilar('app/(app)/curso/enrollments', supabase.from('enrollments')
     .select('*, course_cycles(id,name,description,status,location_name,full_address,certificate_delivery_date)')
-    .eq('user_id', user.id).order('created_at', { ascending: false });
-  const { data: openCycles } = await supabase.from('course_cycles')
-    .select('*').eq('status', 'registration_open').order('registration_start');
+    .eq('user_id', user.id).order('created_at', { ascending: false }));
+  const { data: openCycles } = await vigilar('app/(app)/curso/course_cycles', supabase.from('course_cycles')
+    .select('*').eq('status', 'registration_open').order('registration_start'));
   const enrolledIds = new Set((myEnrollments ?? []).filter(e => !['withdrawn','cancelled'].includes(e.status)).map((e) => e.cycle_id));
 
   return (
@@ -20,15 +21,15 @@ export default async function CursoPage() {
       {(myEnrollments ?? []).filter(e => !['withdrawn','cancelled'].includes(e.status)).map((e) => (
         <section key={e.id} className="card space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold">{(e as any).course_cycles?.name}</h2>
+            <h2 className="font-bold">{e.course_cycles?.name}</h2>
             <StatusBadge status={e.status} label={ENROLLMENT_LABEL[e.status]} />
           </div>
-          {(e as any).course_cycles?.description && <p className="text-sm text-gray-600">{(e as any).course_cycles.description}</p>}
-          {(e as any).course_cycles?.location_name && (
-            <p className="text-sm text-gray-600 inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-brand-600 shrink-0" aria-hidden /> {(e as any).course_cycles.location_name} — {(e as any).course_cycles.full_address}</p>
+          {e.course_cycles?.description && <p className="text-sm text-gray-600">{e.course_cycles.description}</p>}
+          {e.course_cycles?.location_name && (
+            <p className="text-sm text-gray-600 inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-brand-600 shrink-0" aria-hidden /> {e.course_cycles.location_name} — {e.course_cycles.full_address}</p>
           )}
-          {(e as any).course_cycles?.certificate_delivery_date && (
-            <p className="text-sm text-gray-600 inline-flex items-center gap-1.5"><GraduationCap className="w-4 h-4 text-brand-600 shrink-0" aria-hidden /> Entrega de certificados: {fmtDate((e as any).course_cycles.certificate_delivery_date)}</p>
+          {e.course_cycles?.certificate_delivery_date && (
+            <p className="text-sm text-gray-600 inline-flex items-center gap-1.5"><GraduationCap className="w-4 h-4 text-brand-600 shrink-0" aria-hidden /> Entrega de certificados: {fmtDate(e.course_cycles.certificate_delivery_date)}</p>
           )}
           {['enrolled','registered'].includes(e.status) && <WithdrawButton enrollmentId={e.id} />}
         </section>

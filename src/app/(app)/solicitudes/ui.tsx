@@ -180,7 +180,7 @@ export function RequestsHub({ mine, inbox, archive, ministries, isAdmin, isActiv
                         que poder aceptarla en el que corresponda, no solo en el
                         primero. Es lo mismo que ofrece Mi ministerio. */}
                     {r.tipo === 'join' && (r.opciones ?? []).length > 0 ? (
-                      (r.opciones as any[]).map((o: any) => (
+                      r.opciones.map((o: any) => (
                         <button key={o.id} className="btn-primary !py-2 !px-4 text-sm" disabled={busy !== null}
                           aria-label={`Aceptar a ${r.persona} en ${o.name}`}
                           onClick={() => {

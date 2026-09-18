@@ -1,12 +1,13 @@
 import { requireUser } from '@/lib/auth';
 import { fmtDate } from '@/lib/utils';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Anuncios' };
 export default async function AnunciosPage() {
   const { supabase } = await requireUser();
-  const { data: anns } = await supabase.from('announcements')
+  const { data: anns } = await vigilar('app/(app)/anuncios/announcements', supabase.from('announcements')
     .select('id,title,content,image_url,publish_at,priority')
-    .order('priority', { ascending: false }).order('publish_at', { ascending: false }).limit(50);
+    .order('priority', { ascending: false }).order('publish_at', { ascending: false }).limit(50));
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Anuncios</h1>

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type { FormState } from '@/lib/actions/auth';
 import { getActiveEnrollment, getProgress } from '@/lib/course';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 async function ensureTestUnlocked() {
   const supabase = createClient();
@@ -18,8 +19,8 @@ async function ensureTestUnlocked() {
 export async function startAttempt(assessmentId: string): Promise<{ error?: string; attemptId?: string }> {
   try {
     const { supabase, user, enrollment } = await ensureTestUnlocked();
-    const { data: existing } = await supabase.from('assessment_attempts').select('id,completed_at')
-      .eq('assessment_id', assessmentId).eq('user_id', user.id).eq('enrollment_id', enrollment.id).maybeSingle();
+    const { data: existing } = await vigilar('lib/actions/assessment/assessment_attempts', supabase.from('assessment_attempts').select('id,completed_at')
+      .eq('assessment_id', assessmentId).eq('user_id', user.id).eq('enrollment_id', enrollment.id).maybeSingle());
     if (existing) return { attemptId: existing.id };
     const { data, error } = await supabase.from('assessment_attempts')
       .insert({ assessment_id: assessmentId, user_id: user.id, enrollment_id: enrollment.id })
@@ -60,8 +61,8 @@ export async function completeAttempt(attemptId: string): Promise<FormState> {
 export async function declareExternalDone(assessmentId: string, externalResult?: string): Promise<FormState> {
   try {
     const { supabase, user, enrollment } = await ensureTestUnlocked();
-    const { data: existing } = await supabase.from('assessment_attempts').select('id')
-      .eq('assessment_id', assessmentId).eq('user_id', user.id).eq('enrollment_id', enrollment.id).maybeSingle();
+    const { data: existing } = await vigilar('lib/actions/assessment/assessment_attempts', supabase.from('assessment_attempts').select('id')
+      .eq('assessment_id', assessmentId).eq('user_id', user.id).eq('enrollment_id', enrollment.id).maybeSingle());
     let attemptId = existing?.id as string | undefined;
     if (!attemptId) {
       const { data, error } = await supabase.from('assessment_attempts')

@@ -11,3 +11,4 @@ politica-de-privacidad*.txt
 
 _to_delete/
 *.bundle
+*.tsbuildinfo

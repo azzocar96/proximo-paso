@@ -7,11 +7,12 @@ import {
 } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { OverridePanel, SuggestPanel, ActiveMemberToggle } from './ui';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Ficha del participante' };
 export default async function FichaPage({ params }: { params: { id: string } }) {
   const { supabase } = await requireAdmin();
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', params.id).maybeSingle();
+  const { data: profile } = await vigilar('app/admin/participantes/[id]/profiles', supabase.from('profiles').select('*').eq('id', params.id).maybeSingle());
   if (!profile) notFound();
 
   const [{ data: enrollments }, { data: attempts }, { data: dtForms }, { data: assignments }, { data: certs }, { data: ministries }] = await Promise.all([
@@ -26,7 +27,7 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
   const active = (enrollments ?? []).find((e) => !['withdrawn', 'cancelled'].includes(e.status));
   let progress: any = null;
   if (active) {
-    const { data } = await supabase.rpc('get_progress', { p_enrollment: active.id });
+    const { data } = await vigilar('app/admin/participantes/[id]/get_progress', supabase.rpc('get_progress', { p_enrollment: active.id }));
     progress = data;
   }
   const att = active
@@ -38,8 +39,8 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
 
   let approvedByName: string | null = null;
   if (profile.active_member_approved_by) {
-    const { data: approver } = await supabase.from('profiles').select('first_name,last_name')
-      .eq('id', profile.active_member_approved_by).maybeSingle();
+    const { data: approver } = await vigilar('app/admin/participantes/[id]/profiles', supabase.from('profiles').select('first_name,last_name')
+      .eq('id', profile.active_member_approved_by).maybeSingle());
     approvedByName = approver ? `${approver.first_name} ${approver.last_name}` : null;
   }
 
@@ -59,7 +60,7 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
           <p>Registro: {fmtDate(profile.created_at)} · Cuenta: {profile.account_status === 'active' ? 'activa' : profile.account_status}</p>
         </section>
         <section className="card text-sm">
-          <h2 className="font-bold mb-2">Progreso {active ? `— ${(active as any).course_cycles?.name}` : ''}</h2>
+          <h2 className="font-bold mb-2">Progreso {active ? `— ${active.course_cycles?.name}` : ''}</h2>
           {progress ? (
             <ul className="space-y-1">
               {progress.steps?.map((s: any) => (
@@ -124,7 +125,7 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
           <p key={a.id}>{a.ministries?.name}: <StatusBadge status={a.status} label={MINISTRY_ASSIGN_LABEL[a.status]} />{a.notes ? ` — ${a.notes}` : ''}</p>
         ))}
         {(assignments ?? []).length === 0 && <p className="text-gray-500">Sin asignaciones ni intereses.</p>}
-        <SuggestPanel userId={params.id} ministries={(ministries as any) ?? []} />
+        <SuggestPanel userId={params.id} ministries={ministries ?? []} />
       </section>
 
       <section className="card text-sm space-y-2">

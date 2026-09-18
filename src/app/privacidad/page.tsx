@@ -1,12 +1,18 @@
 import { getSettings, str } from '@/lib/settings';
 
+// Siempre en vivo: la caché de 60 s de getSettings ya da la velocidad; lo que
+// no queremos es que el texto quede congelado en el momento del deploy.
+export const dynamic = 'force-dynamic';
+
 export const metadata = { title: 'Política de privacidad' };
 export default async function PrivacidadPage() {
   let text = 'Política de privacidad pendiente de redacción por la iglesia.';
   try {
     const s = await getSettings(['privacy_policy']);
     text = str(s, 'privacy_policy', text);
-  } catch {}
+  } catch (e) {
+    console.error('[settings]', (e as Error)?.message ?? e);
+  }
   return (
     <main className="max-w-2xl mx-auto px-6 py-12">
       <h1 className="text-2xl font-bold mb-4">Política de privacidad</h1>

@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { openAttendance, closeAttendance } from '@/lib/actions/admin';
 import { createClient } from '@/lib/supabase/client';
 import { Alert } from '@/components/ui/Alert';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 type Att = { id: string; recorded_at: string; method: string; profiles: { first_name: string; last_name: string } | null };
 
@@ -35,19 +36,19 @@ export function QrScreen({ session, initialToken, siteUrl }: {
 
   const loadAttendance = useCallback(async () => {
     const supabase = createClient();
-    const { data } = await supabase.from('attendance_records')
+    const { data } = await vigilar('app/admin/sesiones/[id]/qr/ui/attendance_records', supabase.from('attendance_records')
       .select('id,recorded_at,method, profiles(first_name,last_name)')
-      .eq('session_id', session.id).order('recorded_at', { ascending: false });
+      .eq('session_id', session.id).order('recorded_at', { ascending: false }));
     setAttendance((data as any) ?? []);
 
     // Fase 3g: ahora dos personas pueden abrir la asistencia de la misma clase
     // (un servidor del ciclo y un servidor del paso), y abrir revoca el código
     // anterior. Sin esto, uno seguiría proyectando un código muerto con su
     // cuenta atrás en verde mientras la gente escanea sin que pase nada.
-    const { data: live } = await supabase.from('attendance_tokens')
+    const { data: live } = await vigilar('app/admin/sesiones/[id]/qr/ui/attendance_tokens', supabase.from('attendance_tokens')
       .select('token,expires_at').eq('session_id', session.id).eq('revoked', false)
       .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+      .order('created_at', { ascending: false }).limit(1).maybeSingle());
     setToken((prev) => {
       const vivo = (live as any) ?? null;
       if (prev?.token === vivo?.token) return prev;

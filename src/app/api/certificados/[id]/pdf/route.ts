@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import QRCode from 'qrcode';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,12 +12,12 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   // RLS: dueño o admin
-  const { data: cert } = await supabase.from('certificates').select('*').eq('id', params.id).maybeSingle();
+  const { data: cert } = await vigilar('app/api/certificados/[id]/pdf/certificates', supabase.from('certificates').select('*').eq('id', params.id).maybeSingle());
   if (!cert) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
   if (!['issued', 'physical_pending', 'ready_for_pickup', 'delivered'].includes(cert.status))
     return NextResponse.json({ error: 'El certificado aún no está emitido' }, { status: 403 });
 
-  const { data: settingsRows } = await supabase.from('app_settings').select('key,value').in('key', ['certificate_signatures']);
+  const { data: settingsRows } = await vigilar('app/api/certificados/[id]/pdf/app_settings', supabase.from('app_settings').select('key,value').in('key', ['certificate_signatures']));
   const signatures: { name: string; title: string }[] =
     (settingsRows?.find((r) => r.key === 'certificate_signatures')?.value as any) ?? [];
 

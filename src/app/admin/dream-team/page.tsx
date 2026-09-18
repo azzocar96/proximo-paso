@@ -14,7 +14,7 @@ export default async function DreamTeamAdminPage() {
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">Formulario Dream Team</h1>
-      <DreamTeamAdmin questions={(questions as any) ?? []} />
+      <DreamTeamAdmin questions={questions ?? []} />
       <section className="card overflow-x-auto">
         <h2 className="font-bold mb-2">Respuestas recibidas ({(forms ?? []).length})</h2>
         <table className="w-full text-sm">

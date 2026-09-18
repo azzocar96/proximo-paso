@@ -1,15 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 /** Inscripción activa (no retirada/cancelada) más reciente del usuario. */
 export async function getActiveEnrollment(supabase: SupabaseClient, userId: string) {
-  const { data } = await supabase
+  const { data } = await vigilar('lib/course/enrollments', supabase
     .from('enrollments')
     .select('*, course_cycles(*)')
     .eq('user_id', userId)
     .not('status', 'in', '("withdrawn","cancelled")')
     .order('created_at', { ascending: false })
     .limit(1)
-    .maybeSingle();
+    .maybeSingle());
   return data;
 }
 

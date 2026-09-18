@@ -16,7 +16,7 @@ export default async function AnunciosAdminPage() {
         <summary className="cursor-pointer font-semibold text-brand-600">+ Nuevo anuncio</summary>
         <div className="pt-3"><AnnouncementForm cycles={cycles ?? []} ministries={ministries ?? []} /></div>
       </details>
-      <AnnouncementList anns={(anns as any) ?? []} cycles={cycles ?? []} ministries={ministries ?? []} />
+      <AnnouncementList anns={anns ?? []} cycles={cycles ?? []} ministries={ministries ?? []} />
     </div>
   );
 }

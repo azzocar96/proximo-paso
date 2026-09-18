@@ -1,11 +1,12 @@
 import { requireAdmin } from '@/lib/auth';
 import { ENROLLMENT_LABEL } from '@/lib/utils';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Reportes' };
 export default async function ReportesPage() {
   const { supabase } = await requireAdmin();
-  const { data: cycles } = await supabase.from('course_cycles').select('id,name').is('deleted_at', null).order('created_at', { ascending: false });
-  const { data: byStatus } = await supabase.from('enrollments').select('status');
+  const { data: cycles } = await vigilar('app/admin/reportes/course_cycles', supabase.from('course_cycles').select('id,name').is('deleted_at', null).order('created_at', { ascending: false }));
+  const { data: byStatus } = await vigilar('app/admin/reportes/enrollments', supabase.from('enrollments').select('status'));
   const counts: Record<string, number> = {};
   for (const e of byStatus ?? []) counts[e.status] = (counts[e.status] ?? 0) + 1;
   const EXPORTS = [

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { profileSchema, contactSchema } from '@/lib/schemas';
 import { revalidatePath } from 'next/cache';
 import type { FormState } from '@/lib/actions/auth';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export async function enroll(cycleId: string): Promise<FormState> {
   const supabase = createClient();
@@ -31,15 +32,15 @@ export async function updateProfile(_prev: FormState, formData: FormData): Promi
   // Si al editar el perfil la fecha convierte a la persona en menor, aplicamos
   // la misma regla que en el registro: no se puede quedar sin representante.
   if (d.birth_date) {
-    const { data: policy } = await supabase.rpc('fn_registration_policy');
-    const minAge = Number((policy as any)?.min_age ?? 18);
+    const { data: policy } = await vigilar('lib/actions/course/fn_registration_policy', supabase.rpc('fn_registration_policy'));
+    const minAge = Number(policy?.min_age ?? 18);
     const [by, bm, bd] = d.birth_date.split('-').map(Number);
     const now = new Date();
     let age = now.getFullYear() - by;
     if (now.getMonth() + 1 < bm || (now.getMonth() + 1 === bm && now.getDate() < bd)) age--;
     if (age < minAge) {
-      const { data: prof } = await supabase.from('profiles')
-        .select('guardian_name,guardian_contact,guardian_consent').eq('id', user.id).single();
+      const { data: prof } = await vigilar('lib/actions/course/profiles', supabase.from('profiles')
+        .select('guardian_name,guardian_contact,guardian_consent').eq('id', user.id).single());
       if (!prof?.guardian_name || !prof?.guardian_contact || prof?.guardian_consent !== true) {
         return { error: `Con esa fecha eres menor de ${minAge} años y necesitamos los datos de tu representante. Escríbenos desde Contacto y lo resolvemos.` };
       }

@@ -3,12 +3,13 @@ import { GraduationCap } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { fmtDate, CERT_LABEL } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Mi certificado' };
 export default async function CertificadoPage() {
   const { supabase, user } = await requireUser();
-  const { data: cert } = await supabase.from('certificates').select('*')
-    .eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
+  const { data: cert } = await vigilar('app/(app)/certificado/certificates', supabase.from('certificates').select('*')
+    .eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle());
 
   if (!cert) {
     return (

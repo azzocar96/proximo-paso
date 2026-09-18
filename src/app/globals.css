@@ -43,3 +43,14 @@ h1 { letter-spacing: -0.02em; }
 .grad-text { @apply bg-gradient-to-r from-brand-600 via-brand-500 to-accent bg-clip-text text-transparent; }
 .glass { @apply bg-white/70 backdrop-blur-xl border border-gray-200/60; }
 .card-hover { @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(0_0_0/0.08)]; }
+
+/* Quien tiene activado "reducir movimiento" en su teléfono no debe ver nada
+   que se deslice, gire o parpadee: se respeta esa preferencia del sistema. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

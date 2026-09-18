@@ -1,16 +1,17 @@
 'use server';
 import { createClient } from '@/lib/supabase/server';
 import { cycleSchema, sessionSchema, announcementSchema, ministrySchema } from '@/lib/schemas';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { FormState } from '@/lib/actions/auth';
+import { vigilar } from '@/lib/supabase/vigilar';
 
 // Nota (Fase 3a): "admin" quedó inerte (ver src/lib/auth.ts). Nivel más alto: superadmin o pastor.
 async function requireStaffAction() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Sesión no válida');
-  const { data: role } = await supabase.rpc('fn_role');
+  const { data: role } = await vigilar('lib/actions/admin/fn_role', supabase.rpc('fn_role'));
   if (!['coordinator', 'pastor', 'superadmin'].includes(role as string)) throw new Error('No autorizado');
   return { supabase, user, role: role as string };
 }
@@ -94,7 +95,7 @@ export async function saveSession(sessionId: string, _prev: FormState, formData:
 export async function assignCoordinator(cycleId: string, email: string): Promise<FormState> {
   try {
     const { supabase } = await requireAdminAction();
-    const { data: prof } = await supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle();
+    const { data: prof } = await vigilar('lib/actions/admin/profiles', supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle());
     if (!prof) return { error: 'No existe un usuario con ese correo.' };
     const { error } = await supabase.from('cycle_coordinators').insert({ cycle_id: cycleId, user_id: prof.id });
     if (error) return { error: error.code === '23505' ? 'Ya sirve en este ciclo.' : 'No pudimos asignarlo.' };
@@ -260,7 +261,7 @@ export async function saveMinistry(ministryId: string | null, _prev: FormState, 
 // ---------- líderes de ministerio (solo superadmin; lo valida la RPC) ----------
 export async function assignMinistryLeader(ministryId: string, email: string): Promise<FormState> {
   const supabase = createClient();
-  const { data: prof } = await supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle();
+  const { data: prof } = await vigilar('lib/actions/admin/profiles', supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle());
   if (!prof) return { error: 'No existe un usuario con ese correo.' };
   const { error } = await supabase.rpc('assign_ministry_leader', { p_user: prof.id, p_ministry: ministryId });
   if (error) return { error: error.message };
@@ -348,6 +349,9 @@ export async function saveSetting(key: string, value: unknown): Promise<FormStat
     if (error) return { error: `No pudimos guardar "${key}" (¿permisos?).` };
     await supabase.rpc('fn_audit', { p_action: 'update_setting', p_entity: 'app_settings', p_id: null, p_reason: null, p_details: { key } });
     revalidatePath('/admin/configuracion');
+    // La portada, la ayuda y la privacidad leen estos ajustes desde una caché de
+    // 60 s: al guardar, se vacía para que el cambio se vea al instante.
+    revalidateTag('app_settings');
     return { success: 'Configuración guardada.' };
   } catch (e) { return { error: (e as Error).message }; }
 }
@@ -427,7 +431,7 @@ export async function addDreamTeamQuestion(text: string, type: string, optionsCs
 export async function assignStepSpeaker(step: number, email: string, bio: string, phone: string): Promise<FormState> {
   try {
     const { supabase } = await requireAdminAction();
-    const { data: prof } = await supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle();
+    const { data: prof } = await vigilar('lib/actions/admin/profiles', supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle());
     if (!prof) return { error: 'No existe un usuario con ese correo.' };
     const { error } = await supabase.rpc('assign_step_speaker', { p_step: step, p_user: prof.id, p_bio: bio || null, p_phone: phone || null });
     if (error) return { error: error.message };
@@ -467,7 +471,7 @@ export async function cancelAndRescheduleSession(
       p_session: sessionId, p_mode: mode, p_new_date: mode === 'same_week' ? newDate : null, p_reason: reason,
     });
     if (error) return { error: error.message };
-    const { data: sess } = await supabase.from('course_sessions').select('cycle_id').eq('id', sessionId).maybeSingle();
+    const { data: sess } = await vigilar('lib/actions/admin/course_sessions', supabase.from('course_sessions').select('cycle_id').eq('id', sessionId).maybeSingle());
     revalidatePath('/admin/ciclos');
     if (sess?.cycle_id) revalidatePath(`/admin/ciclos/${sess.cycle_id}`);
     return { success: mode === 'same_week' ? 'Clase reprogramada.' : 'Ciclo corrido una semana.' };
@@ -481,8 +485,8 @@ export async function cancelAndRescheduleSession(
 export async function createCertificationSession(cycleId: string, date: string | null): Promise<FormState> {
   try {
     const { supabase } = await requireAdminAction();
-    const { data: existing } = await supabase.from('course_sessions')
-      .select('id').eq('cycle_id', cycleId).eq('is_certification', true).maybeSingle();
+    const { data: existing } = await vigilar('lib/actions/admin/course_sessions', supabase.from('course_sessions')
+      .select('id').eq('cycle_id', cycleId).eq('is_certification', true).maybeSingle());
     if (existing) return { error: 'Este ciclo ya tiene una sesión de certificación.' };
     const { error } = await supabase.from('course_sessions').insert({
       cycle_id: cycleId, step_number: 5, is_certification: true,
