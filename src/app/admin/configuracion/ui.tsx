@@ -17,7 +17,7 @@ const LABEL: Record<string, string> = {
   assessment_external_url: 'URL del test externo',
   min_age_without_guardian: 'Edad mínima sin representante', allow_minors: 'Permitir menores con consentimiento',
   default_attendance_window_min: 'Ventana de asistencia por defecto (min)',
-  default_token_ttl_min: 'Vida del QR por defecto (min)', privacy_policy: 'Política de privacidad (texto)',
+  default_token_ttl_min: 'Vida del QR por defecto (min)', qr_solo_el_dia: 'QR solo el día de la clase (apagar solo para probar)', church_timezone: 'Zona horaria de la iglesia', privacy_policy: 'Política de privacidad (texto)',
 };
 
 export function SettingsForm({ settings, isSuper }: { settings: { key: string; value: unknown; description: string | null }[]; isSuper: boolean }) {
