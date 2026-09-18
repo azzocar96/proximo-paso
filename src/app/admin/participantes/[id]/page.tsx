@@ -7,6 +7,7 @@ import {
 } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { OverridePanel, SuggestPanel, ActiveMemberToggle } from './ui';
+import { EscribirMensaje } from './escribir';
 import { vigilar } from '@/lib/supabase/vigilar';
 
 export const metadata = { title: 'Ficha del participante' };
@@ -46,7 +47,10 @@ export default async function FichaPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-extrabold">{profile.first_name} {profile.middle_name ?? ''} {profile.last_name}</h1>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <h1 className="text-2xl font-extrabold">{profile.first_name} {profile.middle_name ?? ''} {profile.last_name}</h1>
+        <EscribirMensaje id={profile.id} nombre={profile.first_name} />
+      </div>
       <div className="grid md:grid-cols-2 gap-4">
         <section className="card text-sm space-y-1">
           <h2 className="font-bold mb-2">Datos</h2>

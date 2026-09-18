@@ -1,8 +1,10 @@
-import Link from 'next/link';
 import {
   Home, TrendingUp, ScanLine, Megaphone, User, BookOpen,
-  HeartHandshake, Mail, Mic, Wrench, LogOut, Users, Newspaper, Inbox, HandHeart,
+  HeartHandshake, MessageSquare, Mic, Wrench, LogOut, Users, Newspaper, Inbox, HandHeart,
 } from 'lucide-react';
+import { NavLink } from '@/components/shell/NavLink';
+import { TopBar, type Contadores } from '@/components/shell/TopBar';
+import { iniciales } from '@/components/ui/Avatar';
 import { requireUser } from '@/lib/auth';
 import { signOut } from '@/lib/actions/auth';
 import { vigilar } from '@/lib/supabase/vigilar';
@@ -17,13 +19,20 @@ const NAV = [
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user } = await requireUser();
-  const [{ data: role }, { data: mySpeakerSteps }, { data: myLedMinistries }, { data: nav, error: navError }] =
+  const [{ data: role }, { data: mySpeakerSteps }, { data: myLedMinistries }, { data: nav, error: navError }, perfilRes, contRes] =
     await Promise.all([
       supabase.rpc('fn_role'),
       supabase.from('step_speakers').select('step_number').eq('user_id', user.id),
       supabase.from('ministry_leaders').select('ministry_id').eq('user_id', user.id),
       supabase.rpc('fn_my_nav'),
+      supabase.from('profiles').select('first_name,last_name').eq('id', user.id).maybeSingle(),
+      supabase.rpc('fn_my_counters'),
     ]);
+  if (perfilRes.error) console.error('[app/layout/profiles]', perfilRes.error.message);
+  if (contRes.error) console.error('[app/layout/fn_my_counters]', contRes.error.message);
+  const contadores: Contadores = (contRes.data as Contadores | null) ?? { solicitudes: 0, notificaciones: 0, mensajes: 0 };
+  const nombre = perfilRes.data?.first_name || 'bienvenido';
+  const ini = iniciales(perfilRes.data?.first_name, perfilRes.data?.last_name);
   // Fase 3g: el servidor de un ministerio no es director ni orador, pero puede
   // tener responsabilidades reales (mostrar el QR, confirmar asistencias).
   const { data: servantRoles } = await vigilar('app/(app)/layout/fn_my_servant_roles', supabase.rpc('fn_my_servant_roles'));
@@ -48,40 +57,28 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {/* Logo real de la iglesia (logo.png), no el ícono placeholder */}
           <img src="/logo.png" alt="Próximo Paso" className="h-9 w-auto" />
         </div>
-        {NAV.map(({ href, label, Icon }) => (
-          <Link key={href} href={href} className="nav-item">
-            <Icon className="nav-item-icon" aria-hidden /> {label}
-          </Link>
-        ))}
-        <Link href="/curso" className="nav-item"><BookOpen className="nav-item-icon" aria-hidden /> Mi curso</Link>
+        {NAV.map((item) => <NavLink key={item.href} {...item} />)}
+        <NavLink href="/curso" label="Mi curso" Icon={BookOpen} />
         {canSeeMinistries && (
-          <Link href="/ministerios" className="nav-item"><HeartHandshake className="nav-item-icon" aria-hidden /> Ministerios</Link>
+          <NavLink href="/ministerios" label="Ministerios" Icon={HeartHandshake} />
         )}
         {canSeeWall && (
-          <Link href="/muro" className="nav-item"><Newspaper className="nav-item-icon" aria-hidden /> Muro</Link>
+          <NavLink href="/muro" label="Muro" Icon={Newspaper} />
         )}
-        <Link href="/solicitudes" className="nav-item"><Inbox className="nav-item-icon" aria-hidden /> Solicitudes</Link>
-        <Link href="/contacto" className="nav-item"><Mail className="nav-item-icon" aria-hidden /> Contacto</Link>
+        <NavLink href="/solicitudes" label="Solicitudes" Icon={Inbox} />
+        <NavLink href="/mensajes" label="Mensajes" Icon={MessageSquare} />
         {(isSpeaker || isStaff || isLeader || isServant) && <div className="my-2 border-t border-gray-100" />}
         {isServant && (
-          <Link href="/servicio" className="nav-item !text-brand-700 hover:!bg-brand-50">
-            <HandHeart className="nav-item-icon !text-brand-600" aria-hidden /> Mi servicio
-          </Link>
+          <NavLink href="/servicio" label="Mi servicio" Icon={HandHeart} accent />
         )}
         {isLeader && (
-          <Link href="/liderazgo" className="nav-item !text-brand-700 hover:!bg-brand-50">
-            <Users className="nav-item-icon !text-brand-600" aria-hidden /> Mi ministerio
-          </Link>
+          <NavLink href="/liderazgo" label="Mi ministerio" Icon={Users} accent />
         )}
         {isSpeaker && (
-          <Link href="/orador" className="nav-item !text-brand-700 hover:!bg-brand-50">
-            <Mic className="nav-item-icon !text-brand-600" aria-hidden /> Mi paso
-          </Link>
+          <NavLink href="/orador" label="Mi paso" Icon={Mic} accent />
         )}
         {isStaff && (
-          <Link href="/admin" className="nav-item !text-brand-700 hover:!bg-brand-50">
-            <Wrench className="nav-item-icon !text-brand-600" aria-hidden /> Panel admin
-          </Link>
+          <NavLink href="/admin" label="Panel admin" Icon={Wrench} accent />
         )}
         <form action={signOut} className="mt-auto">
           <button className="nav-item w-full text-left">
@@ -89,13 +86,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </button>
         </form>
       </aside>
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6">{children}</main>
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 grid grid-cols-5 z-40" aria-label="Navegación principal">
-        {NAV.map(({ href, label, Icon }) => (
-          <Link key={href} href={href} className="flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium text-gray-500 hover:text-brand-600">
-            <Icon className="w-5 h-5" aria-hidden />{label}
-          </Link>
-        ))}
+      <div className="flex-1 min-w-0 flex flex-col">
+        <TopBar userId={user.id} iniciales={ini} nombre={nombre} inicial={contadores} />
+        <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6">{children}</main>
+      </div>
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-gray-200 grid grid-cols-5 z-40 pb-[env(safe-area-inset-bottom)]" aria-label="Navegación principal">
+        {NAV.map((item) => <NavLink key={item.href} {...item} variant="bottom" />)}
       </nav>
     </div>
   );

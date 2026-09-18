@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { GraduationCap } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { fmtDate, CERT_LABEL } from '@/lib/utils';
+import { Compartir } from '@/components/ui/Compartir';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { vigilar } from '@/lib/supabase/vigilar';
 
@@ -36,7 +37,12 @@ export default async function CertificadoPage() {
         {cert.status === 'pending_approval' && <p className="text-sm text-amber-700">Tu certificado está pendiente de aprobación final.</p>}
         {cert.status === 'revoked' && <p className="text-sm text-red-700">Este certificado fue revocado. Contacta a la iglesia si crees que es un error.</p>}
         {downloadable && (
-          <a href={`/api/certificados/${cert.id}/pdf`} className="btn-primary w-full">Descargar PDF</a>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <a href={`/api/certificados/${cert.id}/pdf`} className="btn-primary flex-1">Descargar PDF</a>
+            <Compartir className="flex-1 justify-center" titulo="Mi certificado de Próximo Paso"
+              texto={`Completé ${cert.course_name} en ${cert.church_name}. Verifícalo aquí:`}
+              url={`${site}/verificar/${cert.verify_code}`} />
+          </div>
         )}
         <p className="text-xs text-gray-400 break-all">
           Código de verificación: <b>{cert.verify_code}</b><br />

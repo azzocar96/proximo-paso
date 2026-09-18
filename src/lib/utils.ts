@@ -59,3 +59,16 @@ export const EDUCATION_LEVEL_LABEL: Record<string, string> = {
 export const CHURCH_ATTENDANCE_LABEL: Record<string, string> = {
   lt_1y: 'Menos de 1 año', '1_3y': '1 a 3 años', '3_4y': '3 a 4 años', '4y_plus': '4+ años',
 };
+
+/** "hace 5 min", "ayer", "12 de marzo" — para listas que se leen de un vistazo. */
+export function haceCuanto(iso?: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return 'ahora';
+  if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
+  if (diff < 172800) return 'ayer';
+  if (diff < 7 * 86400) return `hace ${Math.floor(diff / 86400)} días`;
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+}

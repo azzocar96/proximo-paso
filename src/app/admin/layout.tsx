@@ -2,7 +2,7 @@ import Link from 'next/link';
 import {
   ArrowLeft, LayoutDashboard, BookOpen, CheckSquare, Mic, Users, FileText,
   HandHeart, GraduationCap, HeartHandshake, Megaphone, Inbox, BarChart3,
-  Filter, ScrollText, Settings, ShieldCheck,
+  Filter, ScrollText, Settings, ShieldCheck, MessageSquare,
 } from 'lucide-react';
 import { requireStaff } from '@/lib/auth';
 
@@ -20,7 +20,8 @@ const ADMIN_NAV = [
   { href: '/admin/certificados', label: 'Certificados', Icon: GraduationCap, roles: ['pastor', 'superadmin'] },
   { href: '/admin/ministerios', label: 'Ministerios', Icon: HeartHandshake, roles: ['pastor', 'superadmin'] },
   { href: '/admin/anuncios', label: 'Anuncios', Icon: Megaphone, roles: ['pastor', 'superadmin'] },
-  { href: '/admin/contacto', label: 'Mensajes', Icon: Inbox, roles: ['pastor', 'superadmin'] },
+  { href: '/mensajes', label: 'Mensajes', Icon: MessageSquare, roles: ['pastor', 'superadmin'] },
+  { href: '/admin/contacto', label: 'Contacto (formulario antiguo)', Icon: Inbox, roles: ['pastor', 'superadmin'] },
   { href: '/admin/reportes', label: 'Reportes', Icon: BarChart3, roles: ['pastor', 'superadmin'] },
   { href: '/admin/segmentacion', label: 'Segmentación', Icon: Filter, roles: ['pastor', 'superadmin'] },
   { href: '/admin/auditoria', label: 'Auditoría', Icon: ScrollText, roles: ['pastor', 'superadmin'] },

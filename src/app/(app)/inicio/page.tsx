@@ -5,6 +5,8 @@ import { getActiveEnrollment, getProgress, progressPercent, nextActivity } from 
 import { fmtDate, fmtTime, ENROLLMENT_LABEL } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EnrollButton } from '@/app/(app)/curso/ui';
+import { InstalarApp } from '@/components/shell/InstalarApp';
+import { Recorrido } from '@/components/ui/Recorrido';
 
 export const metadata = { title: 'Inicio' };
 export default async function InicioPage() {
@@ -61,6 +63,8 @@ export default async function InicioPage() {
         <p className="text-sm text-gray-500">Qué bueno verte por aquí.</p>
       </div>
 
+      <InstalarApp />
+
       {invitarAServir && (
         <section className="card space-y-2 border-brand-200/60 bg-brand-50/40">
           <p className="font-semibold inline-flex items-center gap-2">
@@ -103,6 +107,7 @@ export default async function InicioPage() {
               <div className="h-full rounded-full bg-gradient-to-r from-brand-600 to-accent transition-all" style={{ width: `${progressPercent(progress)}%` }} />
             </div>
           </div>
+          <Recorrido progress={progress} />
           <p className="text-sm"><span className="font-semibold">Siguiente:</span> {nextActivity(progress)}</p>
           {nextSession?.date && (
             <p className="text-sm text-gray-600 inline-flex items-center gap-1.5">
